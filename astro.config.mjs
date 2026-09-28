@@ -17,7 +17,7 @@ export default defineConfig({
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/carp-dk' },
 				{ icon: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/company/carp-dk/' },
-				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/PyxCmqS8' },
+				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/sswpqGvnf5' },
 				{ icon: 'email', label: 'Support', href: 'mailto:support@carp.dk' },
 			],
 			sidebar: [
