@@ -22,6 +22,10 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Quick Start',
+					items: [{ autogenerate: { directory: 'start' } }],
+				},
+				{
 					label: 'Architecture',
 					items: ['architecture'],
 				},

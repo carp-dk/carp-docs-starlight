@@ -353,8 +353,7 @@ await subscription?.cancel();
 // listen on ambient light measurements only
 controller?.measurements
     .where((measurement) =>
-        measurement.data.format.toString() ==
-        SensorSamplingPackage.AMBIENT_LIGHT)
+        measurement.data.jsonType == SensorSamplingPackage.AMBIENT_LIGHT)
     .listen((measurement) => print(measurement));
 ```
 

@@ -1,0 +1,66 @@
+---
+title: The words you'll see
+description: Flutter, Dart, packages, protocols and measurements, explained with everyday examples.
+sidebar:
+  order: 2
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+CARP docs use a handful of technical words. Here they are in plain language.
+
+## The tools
+
+**Flutter**
+: A free tool from Google for building phone apps. You write the app **once**, and it
+  runs on both **iPhone and Android**. CARP apps are Flutter apps.
+
+**Dart**
+: The programming language Flutter apps are written in. If you've seen JavaScript,
+  Java or C#, Dart will look familiar.
+
+**Package**
+: A ready-made piece of code someone else wrote that you add to your app, like a
+  LEGO brick. Instead of writing step-counting code yourself, you add a package that
+  already does it. Flutter packages are published on **[pub.dev](https://pub.dev)**,
+  a kind of app store for code.
+
+**`pubspec.yaml`**
+: A file in every Flutter app that lists which packages the app uses, like a
+  shopping list. Add a line, run `flutter pub get`, and the package is downloaded.
+
+## The CARP pieces
+
+**CAMS (CARP Mobile Sensing)**
+: The main CARP package, `carp_mobile_sensing`. It's the engine inside your app that
+  collects the data.
+
+**Sampling package**
+: An extra CARP package that teaches CAMS to collect a new *kind* of data. CAMS
+  already knows steps, screen and battery. Add `carp_context_package` and it also
+  knows location and weather; add `carp_polar_package` and it can talk to a Polar
+  heart rate strap.
+
+**CAWS (CARP Web Services)**
+: CARP's own server. It's where researchers set up studies, invite participants and
+  receive the data.
+
+## The study words
+
+| Word | Plain meaning | Example |
+| --- | --- | --- |
+| **Study protocol** | The recipe: what to collect, from which device, and when | "Steps and screen events, all day" |
+| **Measure** | One thing to collect | Steps |
+| **Trigger** | *When* to collect | Right away, every hour, every morning at 8:00 |
+| **Task** | A group of measures that start together | "Background sensing", "Morning survey" |
+| **Device** | Where data comes from | The phone, a smartwatch |
+| **Deployment** | One participant's copy of the protocol, running on their phone | Anna's study on Anna's phone |
+| **Measurement** | One piece of collected data, with a timestamp | "12 steps at 09:14" |
+| **Data endpoint** | Where the measurements are saved or sent | On the phone, CAWS, your own server |
+
+<Aside type="tip">
+If you only remember one sentence: **a protocol is a recipe of measures and triggers;
+the app follows it and produces measurements; the data endpoint decides where they go.**
+</Aside>
+
+Next: [build your first app](/start/first-app/).

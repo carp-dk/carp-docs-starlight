@@ -37,8 +37,8 @@ Add dependencies in `pubspec.yaml`:
 ```yaml
 environment:
   sdk: ">=3.10.0 <4.0.0"
-  flutter: ">=3.19.0"
-  
+  flutter: ">=3.38.1"
+
 dependencies:
   flutter:
     sdk: flutter
@@ -176,6 +176,11 @@ dependencies {
 Both the flutter_local_notification and the flutter_background plugins use the `ic_launcher.png` as the icon for notifications. Hence, this icon should be added as a drawable resource to the the Android head project in the `android/app/src/main/res/drawable/` folder. You typically copy the `/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png` icon.
 
 ## 3) iOS configuration
+
+<Aside type="caution">
+CAMS requires **iOS 15.0** or newer. Set the minimum deployment target to 15.0 in Xcode
+(**Runner → General → Minimum Deployments**), otherwise the iOS build fails.
+</Aside>
 
 <Steps>
 <ol>

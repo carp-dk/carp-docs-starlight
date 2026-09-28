@@ -1,0 +1,61 @@
+---
+title: Keep data on the phone
+description: Store measurements locally in a database or in files. No server needed.
+sidebar:
+  order: 5
+  label: 💾 On the phone
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This is the simplest option: **no server, no accounts, no internet**. Measurements
+are saved in the app's private storage on the phone.
+
+## You're already doing it
+
+The shortcut `SmartphoneStudyProtocol.local(...)` from
+[your first app](/start/first-app/) saves everything in a small **database**
+(SQLite) on the phone. Nothing else is needed.
+
+## Database or files?
+
+The protocol's **data endpoint** decides the format. In your first app, add one
+line right after creating the protocol:
+
+<Tabs>
+<TabItem label="Database (default)">
+
+Good for apps that want to look back at the data, e.g. "your steps this week".
+This is what `.local(...)` already does, so you don't need to add anything:
+
+```dart
+protocol.dataEndPoint = SQLiteDataEndPoint();
+```
+
+</TabItem>
+<TabItem label="Files">
+
+Good for handing data to a researcher: the data is saved as text files
+(JSON), zipped to save space.
+
+```dart
+protocol.dataEndPoint = FileDataEndPoint(zip: true);
+```
+
+</TabItem>
+</Tabs>
+
+## Getting the data off the phone
+
+- **Android:** in Android Studio, open **Device Explorer** and go to
+  `data/data/<your app id>/`. The database is in `databases/`, files in `app_flutter/carp/`.
+- **iPhone:** add `UIFileSharingEnabled` = `YES` to `Info.plist`, plug the phone into
+  a Mac, and open it in **Finder → Files**.
+
+## When to move on
+
+On-phone storage is perfect for trying things out. For a real study you usually
+want data to arrive centrally without touching each phone. Then look at
+[CAWS](/start/storage-caws/) or [your own server](/start/storage-own-server/).
+
+More detail: [Data Managers](/carp-mobile-sensing/data-managers/).
