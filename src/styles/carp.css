@@ -1,0 +1,11 @@
+/* CARP brand red (#C30E32) as the Starlight accent. */
+:root {
+  --sl-color-accent-low: #3d0510;
+  --sl-color-accent: #ff6467;
+  --sl-color-accent-high: #ffd3d4;
+}
+:root[data-theme="light"] {
+  --sl-color-accent-low: #ffd3d4;
+  --sl-color-accent: #c30e32;
+  --sl-color-accent-high: #5c0718;
+}

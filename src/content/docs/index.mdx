@@ -1,0 +1,37 @@
+---
+title: CARP Documentation
+template: splash
+hero:
+  tagline: Technical documentation for the Copenhagen Research Platform.
+  actions:
+    - text: Architecture overview
+      link: /architecture/
+      icon: right-arrow
+    - text: API Reference
+      link: /api-reference/
+      variant: minimal
+description: "Welcome to the technical documentation site for the Copenhagen Research Platform (CARP)"
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<img
+  src="/images/running.jpg"
+  alt="Running"
+/>
+
+## Flutter Plugins & Packages
+
+The following are list of flutter plugins developed by the Copenhagen research platform:
+
+<CardGrid>
+
+  <LinkCard title="Health" href="/packages/flutter-health-plugin/" description="Read and write health data from/to Apple Health and Google Health Connect" />
+
+  <LinkCard title="Mobile Sensing" href="/carp-mobile-sensing/" description="Collect data from onboard phone sensors, wearable devices, and users" />
+
+  <LinkCard title="CARP Debug Toolkit" href="/packages/debug-toolkit/" description="An in-app debugging toolkit for CARP (and any) Flutter apps" />
+
+  <LinkCard title="Apple Watch Sensing" href="/packages/apple-watch/" description="Collect passive sensor data from an Apple Watch in a CARP Mobile Sensing study" />
+
+</CardGrid>

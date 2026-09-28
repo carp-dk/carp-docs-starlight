@@ -1,0 +1,49 @@
+---
+title: CARP Architecture
+description: How the CARP components fit together, from study protocol to data upload.
+---
+
+CARP is split into a platform-independent **domain model** (`carp_core`), a **client
+framework** that runs studies on the phone (CARP Mobile Sensing, CAMS), pluggable
+**sampling packages**, and **backends** that deploy studies and store data
+(CARP Web Services, CAWS).
+
+## Components
+
+```mermaid
+flowchart LR
+    subgraph Phone["Flutter app"]
+        CAMS["carp_mobile_sensing<br/>(CAMS runtime)"]
+        Pkgs["Sampling packages<br/>context · survey · health · audio …"]
+        Wear["Wearable packages<br/>Apple Watch · Polar · Movesense …"]
+        Core["carp_core<br/>domain model"]
+        Pkgs --> CAMS
+        Wear --> CAMS
+        CAMS --> Core
+    end
+    CAMS -- "carp_backend<br/>carp_webservices" --> CAWS[("CARP Web Services<br/>(CAWS)")]
+    Portal["CARP Portal"] --> CAWS
+```
+
+## Study lifecycle
+
+```mermaid
+sequenceDiagram
+    participant R as Researcher
+    participant S as CAWS
+    participant C as SmartPhoneClientManager
+    participant P as Probes
+    R->>S: Upload study protocol
+    R->>S: Invite participant (study deployment)
+    C->>S: tryDeployment()
+    S-->>C: Primary device deployment
+    C->>P: start() sampling
+    P-->>C: Measurements
+    C->>S: Upload data (data manager)
+```
+
+## Where to go next
+
+- [CAMS software architecture](/carp-mobile-sensing/software-architecture) – the runtime in detail
+- [Domain model](/carp-mobile-sensing/domain-model) – protocols, devices, triggers, tasks and measures
+- [API Reference](/api-reference) – generated Dart docs on pub.dev

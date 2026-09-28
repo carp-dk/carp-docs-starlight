@@ -1,0 +1,251 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+import mermaid from 'astro-mermaid';
+
+export default defineConfig({
+	site: 'https://docs.carp.dk',
+	integrations: [
+		mermaid({ autoTheme: true }), // must come before starlight
+		starlight({
+			title: 'CARP Documentation',
+			description: 'Technical documentation for the Copenhagen Research Platform (CARP).',
+			logo: { src: './src/assets/carp.svg', replacesTitle: true },
+			favicon: '/favicon.svg',
+			customCss: ['./src/styles/carp.css'],
+			editLink: { baseUrl: 'https://github.com/carp-dk/carp-docs-starlight/edit/main/' },
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/carp-dk' },
+				{ icon: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/company/carp-dk/' },
+				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/PyxCmqS8' },
+				{ icon: 'email', label: 'Support', href: 'mailto:support@carp.dk' },
+			],
+			sidebar: [
+				{
+					label: 'Architecture',
+					items: ['architecture'],
+				},
+				{
+					label: 'CARP Mobile Sensing',
+					items: [
+						{
+							label: 'Getting Started',
+							items: [
+								'carp-mobile-sensing',
+								'carp-mobile-sensing/install-and-configure',
+								'carp-mobile-sensing/using-carp-mobile-sensing',
+							],
+						},
+						{
+							label: 'Core Concepts',
+							items: [
+								'carp-mobile-sensing/software-architecture',
+								'carp-mobile-sensing/domain-model',
+								'carp-mobile-sensing/measure-types',
+								'carp-mobile-sensing/data-managers',
+							],
+						},
+						{
+							label: 'Advanced Concepts',
+							items: [
+								'carp-mobile-sensing/app-task-model',
+								'carp-mobile-sensing/data-transformation-and-privacy',
+								'carp-mobile-sensing/extending-carp-mobile-sensing',
+								'carp-mobile-sensing/best-practice',
+							],
+						},
+						{
+							label: 'Github',
+							link: 'https://github.com/carp-dk/carp.sensing-flutter',
+							attrs: {
+								target: '_blank',
+							},
+						},
+						{
+							label: 'Pub',
+							link: 'https://pub.dev/packages/carp_mobile_sensing',
+							attrs: {
+								target: '_blank',
+							},
+						},
+					],
+					collapsed: true,
+				},
+				{
+					label: 'Health Plugin',
+					items: [
+						{
+							label: 'Getting Started',
+							items: [
+								'packages/flutter-health-plugin',
+								'packages/flutter-health-plugin/install',
+								'packages/flutter-health-plugin/quickstart',
+							],
+						},
+						{
+							label: 'Core Concepts',
+							items: [
+								'packages/flutter-health-plugin/permissions',
+								'packages/flutter-health-plugin/data-types',
+								'packages/flutter-health-plugin/health-connect',
+							],
+						},
+						{
+							label: 'Reading Data',
+							items: [
+								'packages/flutter-health-plugin/read',
+								'packages/flutter-health-plugin/read/basic',
+								'packages/flutter-health-plugin/read/interval',
+								'packages/flutter-health-plugin/read/aggregate',
+								'packages/flutter-health-plugin/read/steps',
+							],
+						},
+						{
+							label: 'Writing Data',
+							items: [
+								'packages/flutter-health-plugin/write',
+								'packages/flutter-health-plugin/write/basic',
+								'packages/flutter-health-plugin/write/workouts',
+								'packages/flutter-health-plugin/write/blood',
+								'packages/flutter-health-plugin/write/nutrition',
+								'packages/flutter-health-plugin/write/specialized',
+							],
+						},
+						{
+							label: 'Deleting Data',
+							items: ['packages/flutter-health-plugin/delete'],
+						},
+						{
+							label: 'Platform Setup',
+							items: [
+								'packages/flutter-health-plugin/setup/android',
+								'packages/flutter-health-plugin/setup/ios',
+							],
+						},
+						{
+							label: 'API Reference',
+							items: [
+								'packages/flutter-health-plugin/api',
+								'packages/flutter-health-plugin/api/health-class',
+								'packages/flutter-health-plugin/api/data-models',
+								'packages/flutter-health-plugin/api/enums',
+							],
+						},
+						{
+							label: 'Github',
+							link: 'https://github.com/carp-dk/carp-health-flutter',
+							attrs: {
+								target: '_blank',
+							},
+						},
+						{
+							label: 'Pub',
+							link: 'https://pub.dev/packages/health',
+							attrs: {
+								target: '_blank',
+							},
+						},
+					],
+					collapsed: true,
+				},
+				{
+					label: 'Debug Toolkit',
+					items: [
+						{
+							label: 'Getting Started',
+							items: [
+								'packages/debug-toolkit',
+								'packages/debug-toolkit/installation',
+								'packages/debug-toolkit/quickstart',
+								'packages/debug-toolkit/production',
+							],
+						},
+						{
+							label: 'Guides',
+							items: [
+								'packages/debug-toolkit/environment',
+								'packages/debug-toolkit/data-sources',
+								'packages/debug-toolkit/built-in-tools',
+								'packages/debug-toolkit/custom-tools',
+							],
+						},
+						{
+							label: 'GitHub',
+							link: 'https://github.com/carp-dk/carp_debug_flutter',
+							attrs: {
+								target: '_blank',
+							},
+						},
+						{
+							label: 'Pub.dev',
+							link: 'https://pub.dev/packages/carp_debug_flutter',
+							attrs: {
+								target: '_blank',
+							},
+						},
+					],
+					collapsed: true,
+				},
+				{
+					label: 'Apple Watch Sensing',
+					items: [
+						{
+							label: 'Getting Started',
+							items: [
+								'packages/apple-watch',
+								'packages/apple-watch/installation',
+								'packages/apple-watch/quickstart',
+							],
+						},
+						{
+							label: 'The Watch App',
+							items: [
+								'packages/apple-watch/watch-app',
+								'packages/apple-watch/watch-app/xcode-setup',
+								'packages/apple-watch/watch-app/permissions',
+								'packages/apple-watch/watch-app/source-code',
+								'packages/apple-watch/watch-app/build-and-verify',
+							],
+						},
+						{
+							label: 'Core Concepts',
+							items: [
+								'packages/apple-watch/concepts/architecture',
+								'packages/apple-watch/concepts/configuration',
+								'packages/apple-watch/concepts/data-types',
+								'packages/apple-watch/concepts/runtime-state',
+							],
+						},
+						{
+							label: 'Reference',
+							items: [
+								'packages/apple-watch/reference/api',
+								'packages/apple-watch/reference/watch-settings',
+							],
+						},
+						{
+							label: 'GitHub',
+							link: 'https://github.com/carp-dk/carp_aware_package',
+							attrs: {
+								target: '_blank',
+							},
+						},
+						{
+							label: 'Pub.dev',
+							link: 'https://pub.dev/packages/carp_aware_package',
+							attrs: {
+								target: '_blank',
+							},
+						},
+					],
+					collapsed: true,
+				},
+				{
+					label: 'API Reference',
+					items: ['api-reference'],
+					collapsed: true,
+				},
+			],
+		}),
+	],
+});

@@ -1,0 +1,44 @@
+---
+title: Build & Verify
+description: Install the app on the watch and follow the data end to end
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+<Steps>
+<ol>
+  <li>
+
+**Run the Runner scheme on your iPhone**
+
+    Select the **Runner** scheme and your iPhone, then **Run**. This installs the
+    Flutter app *and* the watch app.
+  </li>
+  <li>
+
+**Install the watch app if it did not install itself**
+
+    On the phone, open the **Watch** app → **Available Apps** → install `CarpWatch`.
+  </li>
+  <li>
+
+**Open the watch app once and press Start**
+
+    watchOS does not run a freshly installed app in the background before its first
+    launch.
+  </li>
+  <li>
+
+**Grant the permissions**
+
+    HealthKit, microphone and location prompts all appear **on the watch**.
+  </li>
+</ol>
+</Steps>
+
+From the command line, `flutter run` builds the `Runner` scheme and therefore the watch
+app too:
+
+```bash
+flutter run --release
+```
