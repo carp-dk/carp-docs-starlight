@@ -1,8 +1,6 @@
 ---
 title: Where should the data go?
 description: Choose between keeping data on the phone, using CARP's server (CAWS), or your own server.
-sidebar:
-  order: 4
 ---
 
 import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
@@ -12,14 +10,14 @@ CARP gives you three choices. You can start with one and switch later.
 
 ```mermaid
 flowchart LR
-    App["📱 Your CARP app"] --> P["💾 On the phone"]
-    App --> C["☁️ CAWS<br/>CARP's server"]
-    App --> O["🖥️ Your own server"]
+    App["Your CARP app"] --> P["On the phone"]
+    App --> C["CAWS<br/>CARP's server"]
+    App --> O["Your own server"]
 ```
 
 ## Quick comparison
 
-| | 💾 On the phone | ☁️ CAWS | 🖥️ Your own server |
+| | On the phone | CAWS | Your own server |
 | --- | --- | --- | --- |
 | **Good for** | Trying CARP, pilots, apps that never share data | Real research studies with many participants | Organisations that already have a data platform |
 | **Server needed?** | No | Yes, CARP's (DTU-hosted or your own copy) | Yes, yours |
@@ -43,7 +41,7 @@ when you move on later. CAWS adds a sign-in step and moves the protocol to the s
 </Aside>
 
 <CardGrid>
-  <LinkCard title="💾 Keep data on the phone" href="/start/storage-phone/" />
-  <LinkCard title="☁️ Use CAWS" href="/start/storage-caws/" />
-  <LinkCard title="🖥️ Use your own server" href="/start/storage-own-server/" />
+  <LinkCard title="Keep data on the phone" href="/start/storage-phone/" />
+  <LinkCard title="Use CAWS" href="/start/storage-caws/" />
+  <LinkCard title="Use your own server" href="/start/storage-own-server/" />
 </CardGrid>

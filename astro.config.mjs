@@ -23,7 +23,21 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Quick Start',
-					items: [{ autogenerate: { directory: 'start' } }],
+					items: [
+						'start',
+						'start/key-concepts',
+						'start/first-app',
+						{
+							label: 'Choosing storage',
+							items: [
+								{ label: 'Overview', slug: 'start/where-data-goes' },
+								'start/storage-phone',
+								'start/storage-caws',
+								'start/storage-own-server',
+							],
+						},
+						'start/next-steps',
+					],
 				},
 				{
 					label: 'Architecture',

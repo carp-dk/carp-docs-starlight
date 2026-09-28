@@ -2,8 +2,7 @@
 title: Use CAWS, CARP's server
 description: Send data to CARP Web Services, where researchers manage studies, invite participants and download data.
 sidebar:
-  order: 6
-  label: ☁️ CAWS
+  label: CAWS
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
@@ -14,9 +13,9 @@ instructions.
 
 ```mermaid
 sequenceDiagram
-    participant R as 👩‍🔬 Researcher<br/>(web portal)
-    participant S as ☁️ CAWS
-    participant A as 📱 Participant's app
+    participant R as Researcher<br/>(web portal)
+    participant S as CAWS
+    participant A as Participant's app
     R->>S: 1. Create study & protocol
     R->>S: 2. Invite participant by email
     A->>S: 3. Participant signs in
