@@ -18,12 +18,26 @@ import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/
 
 Sampling packages sit in a subfolder of `infrastructure/` but are exported as their own library (`lib/sampling_packages.dart`). Most sampling packages are separate pub.dev packages.
 
+## Terms used below
+
+| Term | Meaning | Details |
+| --- | --- | --- |
+| **Study protocol** | The description of a study, written in Dart: what to collect, when, and where to send it | [Study protocol](/carp-mobile-sensing/domain/study-protocol) |
+| **Trigger** | *When* something happens, e.g. at 08:00 every day, or right away | [Triggers](/carp-mobile-sensing/domain/triggers) |
+| **Task** | *What* to do when a trigger fires. A background task collects data silently. An app task asks the user to do something, e.g. fill in a survey | [Tasks](/carp-mobile-sensing/domain/tasks) |
+| **Measure** | One kind of data to collect, e.g. steps or screen events | [Measures and data](/carp-mobile-sensing/domain/measures-and-data) |
+| **Measurement** | One collected value of a measure, with a timestamp | [Measures and data](/carp-mobile-sensing/domain/measures-and-data#measurements-and-data) |
+| **Probe** | The code that reads one sensor or device and produces measurements | [How sampling packages work](/carp-mobile-sensing/sampling-packages/how-they-work) |
+| **Sampling package** | A set of measures with the probes that collect them | [Sampling packages](/carp-mobile-sensing/sampling-packages/) |
+| **Executor** | The runtime object that carries out a trigger, task or probe | [Executors](/carp-mobile-sensing/runtime/executors) |
+| **Data manager** | Stores or uploads measurements | [Data managers](/carp-mobile-sensing/infrastructure/data-managers) |
+
 ## What happens when a study runs
 
-1. **Domain.** You write a `SmartphoneStudyProtocol`.
-2. **Runtime.** `SmartPhoneClientManager` adds it as a study and a `SmartphoneStudyController` runs it. Executors start the triggers, and tasks start probes.
-3. **Sampling packages.** Each probe reads a sensor or device and emits a `Measurement`.
-4. **Infrastructure.** The study's data manager stores or uploads each measurement. State is persisted, so the study resumes after a restart.
+1. **Domain.** You write a study protocol: for example *every morning at 08:00 (trigger), ask the user to fill in a survey (task)*, and *all day, collect steps (measure) in the background (task)*.
+2. **Runtime.** `SmartPhoneClientManager` adds the protocol as a study. Executors wait for each trigger and then run its task.
+3. **Sampling packages.** A background task creates one probe per measure. The probe reads the sensor and emits measurements.
+4. **Infrastructure.** The data manager stores or uploads each measurement. State is saved, so the study resumes after a restart.
 
 ## How the parts relate
 
