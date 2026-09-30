@@ -3,21 +3,12 @@ title: CARP Architecture
 description: How the CARP components fit together, from study protocol to data upload.
 ---
 
-A CARP study goes through three steps: **describe** it, **run** it on a phone, and **collect** the data.
+A CARP study is described once, run on a phone, and its data is collected.
 
-| Step | Component | Where |
-| --- | --- | --- |
-| Describe the study | Study protocol, from the platform-independent domain model | [`carp_core`](https://pub.dev/packages/carp_core) |
-| Run it on a phone | CARP Mobile Sensing (CAMS) | [`carp_mobile_sensing`](/carp-mobile-sensing/) |
-| Read sensors and devices | Sampling packages: context, survey, health, audio, Apple Watch, Polar, Movesense | [Available packages](/carp-mobile-sensing/sampling-packages/available-packages) |
-| Deploy and collect data | CARP Web Services (CAWS), or your own server | [Storage](/start/storage-caws) |
-
-## What happens
-
-1. The researcher writes a **study protocol**: when to collect, what to do, which data.
-2. The protocol is either bundled in your app or uploaded to CAWS and given to a participant as a **deployment**.
-3. On the phone, CAMS runs the study: it reads sensors and asks the user to do tasks.
-4. Each measurement goes to a **data manager**, which stores it on the phone or uploads it.
+1. **Describe.** The researcher writes a **study protocol**: when to collect, what to do, which data. The platform-independent classes are in [`carp_core`](https://pub.dev/packages/carp_core).
+2. **Deploy.** The protocol is either bundled in your app, or uploaded to CARP Web Services (CAWS) and given to a participant as a **deployment**.
+3. **Run.** On the phone, CARP Mobile Sensing ([CAMS](/carp-mobile-sensing/)) runs the study. It reads sensors through [sampling packages](/carp-mobile-sensing/sampling-packages/available-packages) and asks the user to do tasks.
+4. **Collect.** Each measurement goes to a **data manager**, which stores it on the phone or uploads it to [CAWS or your own server](/start/storage-caws).
 
 ## Inside CAMS
 
