@@ -2,7 +2,7 @@ name: Deploy docs
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/api-docs-pipeline] # TODO: drop feature branch before merge
   schedule:
     - cron: '0 2 * * *' # nightly 02:00 UTC; rebuilds only if a source repo changed
   workflow_dispatch: # manual run always rebuilds
