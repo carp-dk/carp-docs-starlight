@@ -1,0 +1,101 @@
+---
+title: "3. Add a device manager"
+description: "MugDevice and MugDeviceManager: connect to the mug (only for external devices)"
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+**Skip this step** if you only read the phone: `SmartphoneSamplingPackage` already uses the `SmartphoneDeviceManager`. The mug is a separate device, so it needs two classes.
+
+## `MugDevice`: the mug in the protocol
+
+A [`DeviceConfiguration`](https://pub.dev/documentation/carp_core/latest/common/DeviceConfiguration-class.html) is what a protocol says: "this study has a device with the role name `Mug`". It is serialized into the protocol JSON, so it has the same JSON boilerplate as the data class. `BLEDevice` adds Bluetooth filters (`serviceUuids`, `namePrefix`, `minRssi`).
+
+```dart
+/// The mug as a device in a study protocol.
+@JsonSerializable(includeIfNull: false)
+class MugDevice extends BLEDevice<BLEDeviceRegistration> {
+  static const String DEVICE_TYPE =
+      '${CamsDevice.CAMS_DEVICE_NAMESPACE}.MugDevice';
+  static const String DEFAULT_ROLE_NAME = 'Mug';
+
+  MugDevice({super.roleName = MugDevice.DEFAULT_ROLE_NAME, super.isOptional = true});
+
+  @override
+  Function get fromJsonFunction => _$MugDeviceFromJson;
+  factory MugDevice.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson(json) as MugDevice;
+  @override
+  Map<String, dynamic> toJson() => _$MugDeviceToJson(this);
+}
+```
+
+## `MugDeviceManager`: the connection at runtime
+
+The manager does the work on the phone. Extend [`BLEDeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BLEDeviceManager-class.html) and implement four things: how to connect, how to disconnect, whether connecting is possible, and what to report back to the deployment service.
+
+```dart
+/// Connects to the mug while the study runs.
+class MugDeviceManager extends BLEDeviceManager<MugDevice, BLEDeviceRegistration> {
+  /// The Bluetooth client of the mug. Replace [Mug] with your vendor's SDK.
+  Mug? mug;
+
+  MugDeviceManager(super.type, {super.configuration});
+
+  @override
+  String? get displayName => bleName ?? 'Smart mug';
+
+  @override
+  int? get batteryLevel => mug?.battery;
+
+  @override
+  bool get canConnect => true;
+
+  @override
+  BLEDeviceRegistration createRegistration() => BLEDeviceRegistration(
+        deviceDisplayName: displayName,
+        isConnected: isConnected,
+        bleAddress: bleAddress ?? 'unknown',
+        bleName: bleName,
+      );
+
+  @override
+  Future<DeviceStatus> onConnect() async {
+    mug = Mug();
+    await mug!.connect();
+    return DeviceStatus.connected;
+  }
+
+  @override
+  Future<bool> onDisconnect() async {
+    await mug?.disconnect();
+    mug = null;
+    return true;
+  }
+}
+
+/// A stand-in for the vendor SDK of the mug. It "drinks" a sip every second.
+class Mug {
+  int battery = 80;
+  final _sips = StreamController<({double temperature, int volume})>.broadcast();
+  Timer? _timer;
+
+  Stream<({double temperature, int volume})> get sips => _sips.stream;
+
+  Future<void> connect() async {
+    var n = 0;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _sips.add((temperature: 62.0 - n++, volume: 25));
+    });
+  }
+
+  Future<void> disconnect() async => _timer?.cancel();
+}
+```
+
+* `onConnect()` is called by CAMS, not by you. It runs when the study starts, if `canConnect` and `shouldConnect` are true. The returned `DeviceStatus` is the initial status. Change `status` later when the connection drops or returns, and the probes and the app see it through `statusEvents`.
+* `createRegistration()` is sent to the deployment service so researchers can see that this participant's mug was connected.
+* `batteryLevel` (and `batteryEvents`) feed the battery indicator in the app.
+* The probe reads `deviceManager.mug`. That is the only link between probe and Bluetooth.
+
+Other base classes: `HardwareDeviceManager` (non-BLE hardware), `ServiceManager` (online services such as a health cloud). See [Devices and permissions](/carp-mobile-sensing/runtime/devices-and-permissions).

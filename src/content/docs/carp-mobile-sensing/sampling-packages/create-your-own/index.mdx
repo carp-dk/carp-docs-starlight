@@ -1,0 +1,53 @@
+---
+title: "Create your own package"
+description: "Build a smart-coffee-mug package and see how every piece connects"
+sidebar:
+  label: Overview
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## The story
+
+A researcher asks: **does coffee affect sleep and mood?** The [Sleep & mood study](/start/first-app) already asks for a morning mood and counts steps. What it cannot see is coffee.
+
+You bought a smart mug. It reports every sip (temperature, milliliters) over Bluetooth. No CAMS package reads it, so you write one: `carp_mug_package`.
+
+Five small pieces make it work. Each one answers one question:
+
+| Piece | Question it answers | Page |
+| --- | --- | --- |
+| `MugSip` ([`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html)-style class) | What does one measurement look like? | [1. Define the data](/carp-mobile-sensing/sampling-packages/create-your-own/data) |
+| `SipProbe` ([`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html)) | How do I turn the mug's sips into measurements? | [2. Write a probe](/carp-mobile-sensing/sampling-packages/create-your-own/probe) |
+| `MugDevice` + `MugDeviceManager` | How does the phone find and connect to the mug? | [3. Add a device manager](/carp-mobile-sensing/sampling-packages/create-your-own/device-manager) |
+| `MugSamplingPackage` | How does CAMS learn all of the above exists? | [4. Write the SamplingPackage](/carp-mobile-sensing/sampling-packages/create-your-own/sampling-package) |
+| Protocol line + `register` | How does a study use it? | [5. Register and use it](/carp-mobile-sensing/sampling-packages/create-your-own/publish) |
+
+## How it connects at runtime
+
+You write the protocol line `addConnectedDevice(mug, phone)` and a task that measures `dk.cachet.carp.mug.sip`. From there CAMS does this:
+
+1. **Registration.** `SamplingPackageRegistry().register(MugSamplingPackage())` stores the package, registers its data types and JSON classes, and hands its `MugDeviceManager` to the device controller under `MugDevice.DEVICE_TYPE`.
+2. **Protocol.** When the protocol is read from JSON, `"__type": "dk.carp.cams.devices.MugDevice"` is turned back into a `MugDevice`, because the package registered it.
+3. **Connect.** The study controller finds the device manager for that type and calls `connect()`, which calls your `onConnect()`.
+4. **Probe creation.** The executor for the `Coffee` task asks the registry for a probe for `dk.cachet.carp.mug.sip`. The registry calls `MugSamplingPackage.create()` and gives the probe the package's device manager.
+5. **Measure.** The probe's `stream` yields a `Measurement` per sip. CAMS stamps it, and sends it to the data manager and the data endpoint.
+
+The phone and the study code never mention Bluetooth. Only the device manager does.
+
+## Real packages to copy from
+
+| Package | Why look at it |
+| --- | --- |
+| [`infrastructure/sampling_packages/device/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/carp_mobile_sensing/lib/infrastructure/sampling_packages/device/) | Smallest complete package. Phone only, so no device manager. |
+| [`packages/carp_esense_package/lib/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_esense_package/lib/) | The mug's twin: a Bluetooth earable with a device, device manager, stream probes. |
+| [`packages/carp_polar_package/lib/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_polar_package/lib/) | Bluetooth heart-rate devices. |
+
+<Aside type="note">
+The `Mug` class in the examples is a stand-in for your vendor's SDK. It "drinks" a sip every second, so the example runs without hardware. Replace it with the real SDK.
+</Aside>
+
+<CardGrid>
+  <LinkCard title="Start with 1. Define the data" href="/carp-mobile-sensing/sampling-packages/create-your-own/data" />
+  <LinkCard title="Terms used in CAMS" href="/carp-mobile-sensing/architecture#terms-used-below" />
+</CardGrid>

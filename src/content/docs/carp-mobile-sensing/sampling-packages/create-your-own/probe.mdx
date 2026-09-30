@@ -1,0 +1,40 @@
+---
+title: "2. Write a probe"
+description: "SipProbe: turn the mug's sips into measurements"
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A probe reads one source and emits `Measurement`s. The mug pushes a sip whenever it happens, so the fitting base class is [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html): override `stream` and CAMS subscribes when the study resumes.
+
+```dart
+/// Emits one [MugSip] measurement every time the mug reports a sip.
+class SipProbe extends StreamProbe {
+  @override
+  MugDeviceManager get deviceManager => super.deviceManager as MugDeviceManager;
+
+  @override
+  Stream<Measurement>? get stream => deviceManager.isConnected
+      ? deviceManager.mug!.sips.map(
+          (sip) => Measurement.fromData(
+            MugSip(temperature: sip.temperature, volume: sip.volume),
+          ),
+        )
+      : null;
+}
+```
+
+* `deviceManager` is set by the registry. The override only narrows its type, so the probe can reach the mug. See [step 3](/carp-mobile-sensing/sampling-packages/create-your-own/device-manager).
+* While the mug is not connected, `stream` is `null` and the probe collects nothing.
+* `Measurement.fromData` wraps the `MugSip` and stamps `sensorStartTime` with now. If the device has its own timestamp, pass it as the second argument (microseconds since epoch), as `ESenseSensorProbe` does.
+
+## Choose the base class by how data arrives
+
+| If the source… | Extend |
+| --- | --- |
+| pushes events (mug sips, screen on/off) | [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html) |
+| is read once (device info) | [`MeasurementProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/MeasurementProbe-class.html) |
+| is read every N seconds (free memory) | [`IntervalProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/IntervalProbe-class.html), implement `getMeasurement()` |
+| streams fast and you want windows or averages | [`PeriodicStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/PeriodicStreamProbe-class.html), [`BufferingPeriodicProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicProbe-class.html), [`BufferingIntervalStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingIntervalStreamProbe-class.html), [`BufferingPeriodicStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicStreamProbe-class.html) |
+
+See [Executors](/carp-mobile-sensing/runtime/executors) for how the probe is started, paused and disposed.

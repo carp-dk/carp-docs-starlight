@@ -1,0 +1,27 @@
+---
+title: "Sampling packages"
+description: "Where measures come from"
+sidebar:
+  label: Overview
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A sampling package is the unit that adds measures to CAMS. Each one declares the measure types it supports and creates a probe for each. CAMS ships two, and the rest are separate packages you add to your app.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/services/sampling_package.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/services/sampling_package.dart) | The `SamplingPackage` interface |
+| [`runtime/sampling_package_registry.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/sampling_package_registry.dart) | The registry |
+| [`infrastructure/sampling_packages/device/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/carp_mobile_sensing/lib/infrastructure/sampling_packages/device/) | Built-in: phone information and events |
+| [`infrastructure/sampling_packages/sensors/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/carp_mobile_sensing/lib/infrastructure/sampling_packages/sensors/) | Built-in: motion, light, steps |
+
+## Pages
+
+<CardGrid>
+  <LinkCard title="How sampling packages work" href="/carp-mobile-sensing/sampling-packages/how-they-work" description="From a measure type to a probe" />
+  <LinkCard title="Available packages" href="/carp-mobile-sensing/sampling-packages/available-packages" description="Measure types, platforms and packages" />
+  <LinkCard title="Create your own package" href="/carp-mobile-sensing/sampling-packages/create-your-own" description="Five steps from data class to published package" />
+</CardGrid>

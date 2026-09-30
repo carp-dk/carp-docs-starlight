@@ -1,0 +1,37 @@
+---
+title: "How sampling packages work"
+description: "From a measure type to a probe"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A package has four parts:
+
+| Part | Class | Job |
+| --- | --- | --- |
+| Package | [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) | Lists the measure types, their default sampling configuration, and creates probes |
+| Data | `Data` subclass | The measurement payload |
+| Probe | [`Probe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/Probe-class.html) | Reads the sensor |
+| Device manager | [`DeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceManager-class.html) | Connects to the device. The default is the phone itself |
+
+**From measure to probe**
+
+1. You write `Measure(type: SensorSamplingPackage.STEP_EVENT)` in a `BackgroundTask`.
+2. At runtime the `BackgroundTaskExecutor` calls `SamplingPackageRegistry().create('dk.cachet.carp.stepevent')`.
+3. The registry asks each registered package; the one that supports the type returns a probe.
+4. The probe emits measurements, which go to the study's data manager.
+
+`SamplingPackageRegistry` registers `DeviceSamplingPackage`, `SensorSamplingPackage` and `MonitoringSamplingPackage` itself. **Register every other package in your app before adding a study**:
+
+```dart
+SamplingPackageRegistry().register(SurveySamplingPackage());
+```
+
+Registering also adds the package's data types, and its device manager to the `DeviceController`, and calls the package's `onRegister()`.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/services/sampling_package.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/services/sampling_package.dart) | `SamplingPackage`, `SmartphoneSamplingPackage`, `MonitoringSamplingPackage` |
+| [`runtime/sampling_package_registry.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/sampling_package_registry.dart) | `SamplingPackageRegistry` |

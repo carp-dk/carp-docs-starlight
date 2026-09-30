@@ -44,9 +44,22 @@ if (value !== node.value) ctx.replaceNode(node, { type: 'raw', value });
 },
 });
 
+const basePath = (process.env.BASE_PATH ?? '/').replace(/\/$/, '');
+
 export default defineConfig({
 	// GitHub Pages serves under /carp-docs-starlight until docs.carp.dk points to it.
 	site: process.env.SITE_URL ?? 'https://docs.carp.dk',
+	redirects: {
+		'/carp-mobile-sensing/using-carp-mobile-sensing': `${basePath}/carp-mobile-sensing/runtime/client-and-study-controller/`,
+		'/carp-mobile-sensing/software-architecture': `${basePath}/carp-mobile-sensing/architecture/`,
+		'/carp-mobile-sensing/domain-model': `${basePath}/carp-mobile-sensing/domain/`,
+		'/carp-mobile-sensing/measure-types': `${basePath}/carp-mobile-sensing/sampling-packages/available-packages/`,
+		'/carp-mobile-sensing/data-managers': `${basePath}/carp-mobile-sensing/infrastructure/data-managers/`,
+		'/carp-mobile-sensing/app-task-model': `${basePath}/carp-mobile-sensing/runtime/app-tasks/`,
+		'/carp-mobile-sensing/data-transformation-and-privacy': `${basePath}/carp-mobile-sensing/domain/data-endpoints-and-privacy/`,
+		'/carp-mobile-sensing/extending-carp-mobile-sensing': `${basePath}/carp-mobile-sensing/sampling-packages/create-your-own/`,
+		'/carp-mobile-sensing/best-practice': `${basePath}/carp-mobile-sensing/run-in-production/`,
+	},
 	base: process.env.BASE_PATH ?? '/',
 markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 	integrations: [
@@ -91,32 +104,67 @@ markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 				{
 					label: 'CARP Mobile Sensing',
 					items: [
+						'carp-mobile-sensing',
+						'carp-mobile-sensing/install-and-configure',
+						'carp-mobile-sensing/architecture',
 						{
-							label: 'Getting Started',
+							label: 'Domain',
+							collapsed: true,
 							items: [
-								'carp-mobile-sensing',
-								'carp-mobile-sensing/install-and-configure',
-								'carp-mobile-sensing/using-carp-mobile-sensing',
+								'carp-mobile-sensing/domain',
+								'carp-mobile-sensing/domain/study-protocol',
+								'carp-mobile-sensing/domain/triggers',
+								'carp-mobile-sensing/domain/tasks',
+								'carp-mobile-sensing/domain/measures-and-data',
+								'carp-mobile-sensing/domain/devices',
+								'carp-mobile-sensing/domain/data-endpoints-and-privacy',
+								'carp-mobile-sensing/domain/json-serialization',
 							],
 						},
 						{
-							label: 'Core Concepts',
+							label: 'Runtime',
+							collapsed: true,
 							items: [
-								'carp-mobile-sensing/software-architecture',
-								'carp-mobile-sensing/domain-model',
-								'carp-mobile-sensing/measure-types',
-								'carp-mobile-sensing/data-managers',
+								'carp-mobile-sensing/runtime',
+								'carp-mobile-sensing/runtime/client-and-study-controller',
+								'carp-mobile-sensing/runtime/executors',
+								'carp-mobile-sensing/runtime/app-tasks',
+								'carp-mobile-sensing/runtime/devices-and-permissions',
 							],
 						},
 						{
-							label: 'Advanced Concepts',
+							label: 'Infrastructure',
+							collapsed: true,
 							items: [
-								'carp-mobile-sensing/app-task-model',
-								'carp-mobile-sensing/data-transformation-and-privacy',
-								'carp-mobile-sensing/extending-carp-mobile-sensing',
-								'carp-mobile-sensing/best-practice',
+								'carp-mobile-sensing/infrastructure',
+								'carp-mobile-sensing/infrastructure/data-managers',
+								'carp-mobile-sensing/infrastructure/deployment-and-persistence',
+								'carp-mobile-sensing/infrastructure/notifications-and-background',
+								'carp-mobile-sensing/infrastructure/settings-and-logging',
 							],
 						},
+						{
+							label: 'Sampling packages',
+							collapsed: true,
+							items: [
+								'carp-mobile-sensing/sampling-packages',
+								'carp-mobile-sensing/sampling-packages/how-they-work',
+								'carp-mobile-sensing/sampling-packages/available-packages',
+								{
+									label: 'Create your own package',
+									collapsed: true,
+									items: [
+										'carp-mobile-sensing/sampling-packages/create-your-own',
+										'carp-mobile-sensing/sampling-packages/create-your-own/data',
+										'carp-mobile-sensing/sampling-packages/create-your-own/probe',
+										'carp-mobile-sensing/sampling-packages/create-your-own/device-manager',
+										'carp-mobile-sensing/sampling-packages/create-your-own/sampling-package',
+										'carp-mobile-sensing/sampling-packages/create-your-own/publish',
+									],
+								},
+							],
+						},
+						'carp-mobile-sensing/run-in-production',
 						{
 							label: 'Github',
 							link: 'https://github.com/carp-dk/carp.sensing-flutter',

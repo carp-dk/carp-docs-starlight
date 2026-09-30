@@ -1,0 +1,80 @@
+---
+title: "4. Write the SamplingPackage"
+description: "MugSamplingPackage: the one object CAMS knows about"
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The data, probe and device manager are useless until CAMS can find them. The [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) is the table of contents:
+
+```dart
+class MugSamplingPackage implements SamplingPackage {
+  static const String MUG_NAMESPACE = '${NameSpace.CARP}.mug';
+  static const String SIP = '$MUG_NAMESPACE.sip';
+
+  final DeviceManager _deviceManager = MugDeviceManager(MugDevice.DEVICE_TYPE);
+
+  @override
+  DataTypeSamplingSchemeMap get samplingSchemes =>
+      DataTypeSamplingSchemeMap.from([
+        DataTypeSamplingScheme(
+          DataTypeMetaData(
+            type: SIP,
+            displayName: 'Coffee sips',
+            timeType: DataTimeType.POINT,
+          ),
+        ),
+      ]);
+
+  @override
+  List<DataTypeMetaData> get dataTypes => samplingSchemes.dataTypes;
+
+  @override
+  Probe? create(String type) => switch (type) {
+        SIP => SipProbe(),
+        _ => null,
+      };
+
+  @override
+  void onRegister() {
+    FromJsonFactory().registerAll([
+      MugDevice(),
+      BLEDeviceRegistration(bleAddress: ''),
+      MugSip(temperature: 0, volume: 0),
+    ]);
+  }
+
+  @override
+  String get deviceType => MugDevice.DEVICE_TYPE;
+
+  @override
+  DeviceManager get deviceManager => _deviceManager;
+}
+```
+
+| Member | Used by CAMS for |
+| --- | --- |
+| `SIP` | The measure type string. A protocol says `Measure(type: MugSamplingPackage.SIP)`. |
+| `samplingSchemes` / `dataTypes` | The list of measure types this package offers, with a display name, and whether it is a point in time or a time span. |
+| `create(type)` | Makes a probe for a measure type. Return `null` for types the package does not own. |
+| `onRegister()` | Runs once on registration. Register every class that is read from JSON: the device, the registration and the data. |
+| `deviceType` / `deviceManager` | Which `DeviceConfiguration` type this package handles, and the manager that connects to it. |
+
+If you forget a class in `onRegister()`, the protocol serializes fine but fails when it is read back, because `FromJsonFactory` does not know the `__type`.
+
+<Aside>
+Permissions: [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) can list the OS permissions a measure needs (for example activity recognition for steps). A probe extending `StreamProbe` or `IntervalProbe` does not start until they are granted. A Bluetooth mug in a real app also needs the Bluetooth permissions in the manifest. See [Devices and permissions](/carp-mobile-sensing/runtime/devices-and-permissions).
+</Aside>
+
+## Sampling configurations (optional)
+
+A measure can carry a sampling configuration: *how often* or *how long* to sample. Give a default in `samplingSchemes`, and a protocol can override it per measure with `overrideSamplingConfiguration`.
+
+| Configuration | Meaning |
+| --- | --- |
+| [`IntervalSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) | Wait `interval` between measurements. |
+| [`PeriodicSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicSamplingConfiguration-class.html) | Sample for `duration` every `interval`. |
+| [`PersistentSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PersistentSamplingConfiguration-class.html) | Keeps its state across app restarts. |
+| [`HistoricSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/HistoricSamplingConfiguration-class.html) | Collects past data. |
+
+The mug pushes sips, so it needs none. A package that polled the mug's temperature would add an `IntervalSamplingConfiguration` and read it in an `IntervalProbe`.

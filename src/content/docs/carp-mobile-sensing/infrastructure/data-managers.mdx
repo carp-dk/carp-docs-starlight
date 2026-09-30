@@ -1,0 +1,270 @@
+---
+title: "Data managers"
+description: "Where measurements are stored or uploaded"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A [`DataManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManager-class.html) receives every measurement of a study and stores or uploads it. The protocol's [`DataEndPoint`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataEndPoint-class.html) selects which one: the [`DataManagerRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManagerRegistry-class.html) looks up the factory registered for the endpoint `type`.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/services/data_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/services/data_manager.dart) | `DataManager`, `AbstractDataManager`, `DataManagerFactory`, `DataManagerRegistry` |
+| [`infrastructure/data_managers/console_data_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/data_managers/console_data_manager.dart) | Prints to the debug console |
+| [`infrastructure/data_managers/file_data_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/data_managers/file_data_manager.dart) | JSON files, optionally zipped |
+| [`infrastructure/data_managers/sqlite_data_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/data_managers/sqlite_data_manager.dart) | A local SQLite database |
+
+<CardGrid>
+    <Card title="Local files" icon="document">
+
+Store JSON or zipped JSON on the device using `FileDataEndPoint`.
+
+</Card>
+    <Card title="SQLite" icon="database">
+
+Store measurements in a local SQLite database using `SQLiteDataEndPoint`.
+
+</Card>
+    <Card title="Firebase">
+
+Upload files or JSON to Firebase via `carp_firebase_backend`.
+
+</Card>
+    <Card title="CAWS" icon="server">
+
+Stream and manage study data with CARP Web Services via `carp_backend`.
+
+</Card>
+</CardGrid>
+
+| Data manager/backend | Typical use |
+| --- | --- |
+| [ConsoleDataManager](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/ConsoleDataManager-class.html) | Debug output to the Dart console. |
+| [FileDataManager](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/FileDataManager-class.html) | Local file persistence as JSON (optionally zipped). |
+| [SQLiteDataManager](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/SQLiteDataManager-class.html) | Local structured storage in SQLite. |
+| [FirebaseDataManager](https://pub.dev/packages/carp_firebase_backend) | Upload JSON/documents and files to Firebase services. |
+| [CarpDataManager](https://pub.dev/packages/carp_backend) | Stream and synchronize data with CAWS backend services. |
+
+## Files
+
+The `FileDataEndPoint` saves measurements in a JSON file on the local device. A `FileDataEndPoint` endpoint can be created and added to a study protocol, like this:
+
+```dart
+var protocol = SmartphoneStudyProtocol(
+    ownerId: 'AB',
+    name: 'Track patient movement',
+    dataEndPoint: FileDataEndPoint(bufferSize: 500 * 1000, zip: true));
+```
+
+CARP measurements are stored in a subfolder called
+
+`<local_application_path>/carp/deployments/<study_deployment_id>/data`
+
+where `local_application_path` is the folder where an application can place files that are private to the application. Data files follow the schema of `carp-data-yyyy-mm-dd-hh-mm-ss-ms.json`.
+`.zip` is added, if the JSON file is zipped.
+
+<Tabs>
+<TabItem label="Android">
+On **Android**, Flutter files are stored in the `AppData` directory, which is located in the
+`data/data/<<package_name>>/app_flutter` folder. Files can be accessed via AndroidStudio.
+</TabItem>
+<TabItem label="iOS">
+On **iOS**, this is the `NSDocumentsDirectory`, which is the app's document folder on the phone. This folder and its files can be accessed via the macOS Finder when the phone is plugged into a laptop.
+
+<Aside>
+You need to set `UIFileSharingEnabled` to `true` in `Info.plist` to access app files via Finder.
+</Aside>
+
+</TabItem>
+</Tabs>
+
+## SQLite
+
+This endpoint is very similar to the file endpoint, except that data is stored in an SQLite database instead of a file.
+This endpoint takes no configuration and can be added to a protocol like this:
+
+```dart
+var protocol = SmartphoneStudyProtocol(
+    ownerId: 'AB',
+    name: 'Track patient movement',
+    dataEndPoint: SQLiteDataEndPoint());
+```
+
+The database files can be accessed like other files (see above).
+
+<Aside>
+On Android, the SQLite db file is located in the `data/data/<<package_name>>/databases` folder.
+</Aside>
+
+## Firebase
+
+The [`carp_firebase_backend`](https://pub.dev/packages/carp_firebase_backend) package is a separate Flutter package for supporting [Google Firebase](https://firebase.google.com) as a backend.
+It supports uploading of data both as files in [Storage](https://firebase.google.com/products/storage/) as well as raw JSON in [Firestore](https://firebase.google.com/products/firestore/). Full documentation is provided as part of the plugin.
+
+<Aside type="caution">
+The Firebase data manager has not yet been updated to API level 2.x.
+</Aside>
+
+## CARP web services
+
+The [`carp_backend`](https://pub.dev/packages/carp_backend) package is a separate Flutter package supporting the [CARP Web Service (CAWS)](https://carp.cachet.dk/caws/) backend. It supports:
+
+* user authentication and setting up a connection to CAWS.
+* download of a study deployment configuration from CAWS
+* streaming of sensing data from CAMS to CAWS
+* upload/download of data like files and JSON documents from/to CAWS
+
+Full documentation is provided as part of the plugin, and an example of how this is used is part of the [CAMS Demo App](https://github.com/cph-cachet/carp.sensing-flutter/tree/main/apps/carp_mobile_sensing_app).
+
+The CAWS data endpoint can be added to a CAMS study protocol and further configured as a [`CarpDataEndpoint`](https://pub.dev/documentation/carp_backend/latest/carp_backend/CarpDataEndPoint-class.html), like this:
+
+```dart
+// Add CAWS as the data endpoint using a stream (default)
+protocol.dataEndPoint = CarpDataEndPoint(
+    uploadMethod: CarpUploadMethod.stream,
+    name: 'CARP Web Service (CAWS)',
+    // Upload data every 10 min
+    uploadInterval: 10,
+    // Keep data on the phone even though it is uploaded
+    deleteWhenUploaded: false,
+);
+```
+
+## Add your own data manager
+
+CAMS comes with a set of built-in and external data managers - see [Data Managers](/carp-mobile-sensing/infrastructure/data-managers) for an overview.
+
+It is possible to extend CAMS with support for new data managers that can save or upload data to custom data backends.
+Support for this is done by implementing 3 interfaces:
+
+<Steps>
+<ol>
+<li>
+
+**Create a data endpoint**
+
+Implement the [`DataEndPoint`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataEndPoint-class.html) interface which is used in the study protocol.
+</li>
+<li>
+
+**Create a data manager**
+
+Implement the [`DataManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManager-class.html) interface which uploads or saves the measurement as they are sampled.
+</li>
+<li>
+
+**Create a data manager factory**
+
+Create a [`DataManagerFactory`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManagerFactory-class.html) that can create a data manager based on the data endpoint configuration,
+</li>
+</ol>
+</Steps>
+
+### Data endpoint
+
+A data endpoint is included in the study protocol and specifies what data manager to use for storing or forwarding data, and the configuration of this data manager. Any new data manager should have a corresponding data endpoint that extends from the [`DataEndPoint`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataEndPoint-class.html) class. For example, the [`FileDataEndPoint`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/FileDataEndPoint-class.html) specifies that data should be saved to a file using the [`FileDataManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/FileDataManager-class.html) data manager. This `FileDataEndPoint` allows for configuring the data manager by specifying buffer size and whether the file should be zipped or encrypted.
+
+<Aside type="caution">
+A `DataEndPoint` must support [JSON serialization](/carp-mobile-sensing/domain/json-serialization) in order to be part of a study protocol
+</Aside>
+
+### Data manager
+
+A data manager implements the functionality for actually storing or forwarding the collected measurements.
+Any new data manager should implement the [`DataManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManager-class.html) interface:
+
+````dart
+/// The [DataManager] interface is used to upload [Measurement] objects to any
+/// data manager that implements this interface.
+abstract class DataManager {
+  /// The deployment using this data manager.
+  PrimaryDeviceDeployment get deployment;
+
+  /// The ID of the study deployment that this manager is handling.
+  String get studyDeploymentId;
+
+  /// The type of this data manager as enumerated in [DataEndPointTypes].
+  String get type;
+
+  /// Configure the data manager by specifying the study [deployment], the
+  /// [dataEndPoint], and the stream of [measurements] events to handle.
+  Future<void> configure({
+    required DataEndPoint dataEndPoint,
+    required SmartphoneDeployment deployment,
+    required Stream<Measurement> measurements,
+  });
+
+  /// Flush any buffered data and close this data manager.
+  /// After calling [close] the data manager can no longer be used.
+  Future<void> close();
+
+  /// Stream of data manager events.
+  Stream<DataManagerEvent> get events;
+
+  /// On each measurement collected, the [onMeasurement] handler is called.
+  ///
+  /// Implementations of this interface should handle how to save
+  /// or upload the [measurement].
+  Future<void> onMeasurement(Measurement measurement);
+
+  /// When the data stream closes, the [onDone] handler is called.
+  Future<void> onDone();
+
+  /// When an error event is send on the stream, the [onError] handler is called.
+  Future<void> onError(Object error);
+}
+````
+
+All of these methods have to be implemented. However, the [`AbstractDataManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AbstractDataManager-class.html) class provides a useful class to start from.
+For example, the `ConsoleDataManager` provides a very simple example of a data manager that prints a json encoded version of the data to the console:
+
+```dart
+/// A very simple data manager that just "uploads" the data to the
+/// console (i.e., prints it). Used mainly for testing and debugging purposes.
+class ConsoleDataManager extends AbstractDataManager {
+  @override
+  String get type => DataEndPointTypes.PRINT;
+
+  @override
+  Future<void> onMeasurement(Measurement measurement) async =>
+      debugPrint(jsonEncode(measurement));
+}
+```
+
+### Data manager factory
+
+When creating a new data manager, a corresponding [`DataManagerFactory`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManagerFactory-class.html) must be provided. This factory knows how to create a data manager of a specific type when the study protocol is loaded. The interface looks like this:
+
+```dart
+/// A factory which can create a [DataManager] based on the `type` of an
+/// [DataEndPoint].
+abstract class DataManagerFactory {
+  /// The [DataEndPoint] type.
+  String get type;
+
+  /// Create a [DataManager].
+  DataManager create();
+}
+````
+
+The factory for the `ConsoleDataManager` looks like this:
+
+```dart
+class ConsoleDataManagerFactory implements DataManagerFactory {
+  @override
+  String get type => DataEndPointTypes.PRINT;
+
+  @override
+  DataManager create() => ConsoleDataManager();
+}
+```
+
+For a data manager to be used in CAMS, its factory must be registered in the [`DataManagerRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataManagerRegistry-class.html) singleton like this:
+
+```dart
+DataManagerRegistry().register(ConsoleDataManagerFactory());
+```
+
+This should happen at app start-up and before the protocol is loaded and sensing is started.

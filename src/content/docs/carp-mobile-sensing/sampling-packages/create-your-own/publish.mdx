@@ -1,0 +1,108 @@
+---
+title: "5. Register and use it"
+description: "Bundle the files, register the package, use it in a study, release it"
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Bundle the files
+
+One library file ties the parts together. `part` files share imports, and the `.g.dart` file holds the generated JSON code.
+
+```dart
+import 'dart:async';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:carp_serializable/carp_serializable.dart';
+import 'package:carp_core/carp_core.dart' hide Smartphone;
+import 'package:carp_mobile_sensing/carp_mobile_sensing.dart';
+
+part 'mug_data.dart';
+part 'mug_probe.dart';
+part 'mug_device_manager.dart';
+part 'mug_package.dart';
+part 'carp_mug_package.g.dart';
+```
+
+## Register and use it
+
+Register before you create the study. Then the mug is an ordinary device in the protocol:
+
+```dart
+SamplingPackageRegistry().register(MugSamplingPackage());
+
+final phone = Smartphone();
+final mug = MugDevice();
+
+final protocol = SmartphoneStudyProtocol(
+  name: 'Coffee and sleep',
+  dataEndPoint: SQLiteDataEndPoint(),
+)
+  ..addPrimaryDevice(phone)
+  ..addConnectedDevice(mug, phone)
+  ..addTaskControl(
+    ImmediateTrigger(),
+    BackgroundTask(name: 'Coffee', measures: [Measure(type: MugSamplingPackage.SIP)]),
+    mug,
+  );
+```
+
+Add the same lines to the Sleep & mood protocol, next to the morning survey. The study now stores a sip stream and a mood answer each morning, and "coffee after 16:00 vs. mood next morning" becomes a query.
+
+## What the protocol looks like
+
+These are the relevant parts of the real serialized protocol. The mug is a connected device, tied to the phone, and its task starts on an immediate trigger:
+
+```json
+"connectedDevices": [
+  {
+    "__type": "dk.carp.cams.devices.MugDevice",
+    "roleName": "Mug",
+    "isOptional": true,
+    "serviceUuids": [],
+    "allowDuplicates": true
+  }
+],
+"connections": [{ "roleName": "Mug", "connectedToRoleName": "Smartphone" }],
+"tasks": [
+  {
+    "__type": "dk.cachet.carp.common.application.tasks.BackgroundTask",
+    "name": "Coffee",
+    "measures": [
+      {
+        "__type": "dk.cachet.carp.common.application.tasks.Measure.DataStream",
+        "type": "dk.cachet.carp.mug.sip"
+      }
+    ]
+  }
+],
+"taskControls": [
+  {
+    "triggerId": 2,
+    "taskName": "Coffee",
+    "destinationDeviceRoleName": "Mug",
+    "control": "Start"
+  }
+]
+```
+
+CAMS also added a `Monitoring Mug` task (with a `NoOpTrigger`). Every device gets one, for errors and task events.
+
+## Test it without hardware
+
+The fake `Mug` lets you test the chain in plain `flutter test`:
+
+```dart
+final manager = MugDeviceManager(MugDevice.DEVICE_TYPE);
+await manager.onConnect();
+manager.status = DeviceStatus.connected;
+
+final probe = SipProbe()..deviceManager = manager;
+final m = await probe.stream!.first;
+expect(m.data, isA<MugSip>());
+```
+
+A second test can build the protocol, encode it with `jsonEncode`, and decode it with `SmartphoneStudyProtocol.fromJson`. If `onRegister()` misses a class, that test fails.
+
+## Release
+
+Publish it as a Dart package on [pub.dev](https://pub.dev). Users add it and the `carp_mobile_sensing` package, then register it as above. The existing packages are listed under [Available packages](/carp-mobile-sensing/sampling-packages/available-packages).

@@ -155,7 +155,16 @@ html(load(pkg, 'index.html')?.querySelector('section.desc'), pkg.name, 'index.ht
 		group.items.push({
 			label: pkg.name,
 			collapsed: true,
-			items: [{ label: 'Overview', slug: `api/${pkg.name}` }, ...libraries.map((l) => ({ label: l.name, slug: map.get(l.href).slice(1, -1) }))],
+			items: [
+{ label: 'Overview', slug: `api/${pkg.name}` },
+...libraries.map((l) => ({
+label: l.name,
+collapsed: true,
+items: [l, ...index.filter((e) => CONTAINERS[e.kind] && e.enclosedBy?.href === l.href).sort((a, b) => a.name.localeCompare(b.name))].map(
+(e) => ({ label: e === l ? 'Overview' : e.name, slug: map.get(e.href).slice(1, -1) }),
+),
+})),
+],
 		});
 	}
 

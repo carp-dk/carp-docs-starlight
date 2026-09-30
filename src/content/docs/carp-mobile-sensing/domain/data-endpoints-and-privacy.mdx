@@ -1,0 +1,244 @@
+---
+title: "Data endpoints and privacy"
+description: "Where data goes, and how it is reshaped before it gets there"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/data_endpoint.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data_endpoint.dart) | `DataEndPoint`, `FileDataEndPoint`, `SQLiteDataEndPoint` |
+| [`domain/core/transformers.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/transformers.dart) | Transformer schemas (CARP, OMH, FHIR) and `PrivacySchema` |
+| [`domain/services/data_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/services/data_manager.dart) | The `DataManager` that acts on the endpoint, see [Data managers](/carp-mobile-sensing/infrastructure/data-managers) |
+
+The protocol names a **data endpoint**. At runtime the matching data manager uploads or stores measurements there, after the transformers in the protocol have run.
+
+## Data transformation
+
+CAMS supports data transformation via two concepts:
+
+- [`DataTransformer`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformer.html) - can transform one type of `Data` to another type of `Data`.
+- [`DataTransformerSchema`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformerSchema-class.html) - holds a set of `DataTransformer`s that can map from the native CARP namespace to another namespace.
+
+To use a transformer schema, specify it in the protocolø's endpoint config. The following protocol will save data as a file in the [Open mHealth](https://www.openmhealth.org/) (OMH) data format:
+
+```dart
+SmartphoneStudyProtocol protocol = SmartphoneStudyProtocol(
+  ownerId: 'AB',
+  name: 'Track patient movement',
+  dataEndPoint: FileDataEndPoint(
+    bufferSize: 500 * 1000,
+    zip: true,
+    encrypt: false,
+    dataFormat: NameSpace.OMH,
+  ),
+);
+```
+
+<Aside>
+  You can make you own custom transformation implementations. See [Extending CAMS](/carp-mobile-sensing/domain/data-endpoints-and-privacy#add-your-own-transformers).
+</Aside>
+
+## Privacy transformer schemas
+
+To apply privacy transformations, configure a privacy schema on the protocol:
+
+```dart
+SmartphoneStudyProtocol protocol = SmartphoneStudyProtocol(
+  ownerId: 'AB',
+  name: 'Track patient movement',
+  privacySchemaName: PrivacySchema.DEFAULT,
+);
+```
+
+<Aside type="tip">
+  `PrivacySchema.DEFAULT` holds default privacy schemas and is a practical starting point. You can extend or replace it with your own schema.
+</Aside>
+
+<Aside>
+The default privacy schema can be [extended](/carp-mobile-sensing/domain/data-endpoints-and-privacy#creating-data-privacy) or replaced by your own.
+</Aside>
+
+## Add your own transformers
+
+### Creating data transformer schemas
+
+Data transformation is supported by the [`DataTransformerSchema`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformerSchema-class.html)
+class and can be implemented by implementing the `namespace` getter and the `onRegister()` callback function.
+As an example, the implementation of the [Open mHealth](http://www.openmhealth.org) transformer schema is shown below:
+
+````dart
+/// A default [DataTransformerSchema] for Open mHealth (OMH) transformers
+class OMHTransformerSchema extends DataTransformerSchema {
+  @override
+  String get namespace => NameSpace.OMH;
+  @override
+  void onRegister() {}
+}
+````
+
+Each transformer schema must be registered in the [`DataTransformerSchemaRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformerSchemaRegistry-class.html) (which is a singleton).
+Hence, add the following line to your setup up part of the app:
+
+````dart
+DataTransformerSchemaRegistry().register(OMHTransformerSchema());
+````
+
+Once the schema is registered, transformers for each data type can be created.
+Data transformation is a transformation of one type of data to another type of data. I.e. data transformation is defined by the [`DataTransformer`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformer.html) typedef.
+
+````dart
+typedef DataTransformer = Data Function(Data);
+````
+
+For each `Data` you want to transform, you need to define a new class that also extends `Data`.
+For example the following `OMHGeopositionDataPoint` class represents an OMH [`Geoposition`](https://pub.dev/documentation/openmhealth_schemas/latest/openmhealth_schemas/Geoposition-class.html) data point.
+
+````dart
+/// Holds an OMH [Geoposition] data point.
+class OMHGeopositionDataPoint extends OMHContextDataPoint
+    implements DataTransformerFactory {
+  OMHGeopositionDataPoint(DataPoint datapoint) : super(datapoint);
+
+  factory OMHGeopositionDataPoint.fromLocationData(Location location) {
+    var pos = Geoposition(
+        latitude: PlaneAngleUnitValue(
+            unit: PlaneAngleUnit.DEGREE_OF_ARC, value: location.latitude),
+        longitude: PlaneAngleUnitValue(
+            unit: PlaneAngleUnit.DEGREE_OF_ARC, value: location.longitude),
+        positioningSystem: PositioningSystem.GPS);
+
+    return OMHGeopositionDataPoint(
+        DataPoint(body: pos, provenance: OMHContextDataPoint.provenance));
+  }
+
+  factory OMHGeopositionDataPoint.fromJson(Map<String, dynamic> json) =>
+      OMHGeopositionDataPoint(DataPoint.fromJson(json));
+
+  static DataTransformer get transformer =>
+      ((data) => OMHGeopositionDataPoint.fromLocationData(data as Location));
+}
+````
+
+The most important function to implement is the `transformer`, and to make sure JSON serialization is supported (in the example above, this is handled by the superclass `OMHContextDataPoint`). The `transformer` is a function that can transform one type of `Data` to another. The mapping between the two data types happens in the `fromLocationData` factory. The `toJson` method is needed in order to serialize and store the data. Also, note that the namespace of the [`DataFormat`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataFormat-class.html) of this `OMHGeopositionDataPoint` is `OMH`.
+
+Once the mapper Data class is created, it must be added to the schema. This is done by calling;
+
+````dart
+DataTransformerSchemaRegistry().lookup(NameSpace.OMH)!
+  ..add(LOCATION, OMHGeopositionDataPoint.transformer);
+````
+
+In the `carp_context_package`, this is done in the [`onRegister()`](https://pub.dev/documentation/carp_context_package/latest/context/ContextSamplingPackage/onRegister.html) method in the [`ContextSamplingPackage`](https://pub.dev/documentation/carp_context_package/latest/context/ContextSamplingPackage-class.html).
+
+### Using data transformer schemas
+
+Data transformation can be done "manually" by looking up a specific transformer schema and applying its transformer. For example, the following code transforms a `Location` into an `OMHGeopositionDatum`.
+
+````dart
+    Location loc = Location()
+      ..longitude = 12.23342
+      ..latitude = 3.34224
+      ..altitude = 124.2134235;
+    OMHGeopositionDatum geo = TransformerSchemaRegistry().lookup(NameSpace.OMH).transform(loc);
+````
+
+However, a more general and common use of transformers is to specify what data format the [`DataEndPoint`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataEndPoint-class.html) should use.
+This is done via the [`dataFormat`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataEndPoint/dataFormat.html) property, which specifies the namespace, like `NameSpace.OMH`.
+
+The following data endpoint saves measurements to a file using the open mHealth (OMH) data format:
+
+````dart
+  // Create a study protocol storing data in files using the OMH data format
+  var protocol = SmartphoneStudyProtocol(
+    ownerId: 'AB',
+    name: 'Track patient movement',
+    dataEndPoint: FileDataEndPoint(
+      bufferSize: 500 * 1000,
+      zip: true,
+      encrypt: false,
+      dataFormat: NameSpace.OMH,
+    ),
+  );
+````
+
+<Aside>
+Note that there is no OMH data format for all data types in CAMS. In the case that no OMH transformer is found, the data is stored in the original CARP data format.
+</Aside>
+
+### Creating data privacy
+
+A special instance of a data transformer schema is the [`PrivacySchema`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PrivacySchema-class.html), which basically takes a piece of data and protects relevant properties.
+CAMS comes with a built-in schema with a transformer namespace specified in `PrivacySchema.DEFAULT`.
+Hence, to add privacy protection, two things have to be implemented:
+
+1. A transformer function that knows how to transform a `Data` object so that its properties are privacy-protected.
+2. Register this function in the [`DataTransformerSchemaRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DataTransformerSchemaRegistry-class.html) as part of the default `PrivacySchema.DEFAULT` schema.
+
+Below are examples of privacy functions that anonymize text messages and phone calls:
+
+<Tabs>
+<TabItem label="textMessageAnonymizer">
+
+```dart
+/// A [TextMessage] anonymizer function. Anonymizes:
+///  - address
+///  - body
+TextMessage textMessageAnonymizer(Data data) {
+  assert(data is TextMessage);
+  var msg = data as TextMessage;
+  if (msg.address != null) {
+    msg.address = sha1.convert(utf8.encode(msg.address!)).toString();
+  }
+  if (msg.body != null) {
+    msg.body = sha1.convert(utf8.encode(msg.body!)).toString();
+  }
+
+  return msg;
+}
+```
+
+</TabItem>
+<TabItem label="phoneCallAnonymizer">
+
+```dart
+/// A [PhoneCall] anonymizer function. Anonymizes:
+///  - formattedNumber
+///  - number
+///  - name
+PhoneCall phoneCallAnonymizer(PhoneCall call) {
+  if (call.formattedNumber != null) {
+    call.formattedNumber = sha1
+        .convert(utf8.encode(call.formattedNumber!))
+        .toString();
+  }
+  if (call.number != null) {
+    call.number = sha1.convert(utf8.encode(call.number!)).toString();
+  }
+  if (call.name != null) {
+    call.name = sha1.convert(utf8.encode(call.name!)).toString();
+  }
+
+  return call;
+}
+```
+
+</TabItem>
+</Tabs>
+
+This function can be put anywhere in the sampling package, but a typical place to put it is in a separate file (if you have many functions) or in the package dart file (if you only have a few).
+
+Registering the anonymizer functions in the `PrivacySchema.DEFAULT` schema:
+
+````dart
+TransformerSchemaRegistry().lookup(PrivacySchema.DEFAULT)!.add(TEXT_MESSAGE, textMessageAnoymizer);
+````
+
+This is typically done as part of the `onRegister()` callback in the package.
+The example above is implemented as part of the [`carp_communication_package`](https://pub.dev/packages/carp_communication_package) package.
+
+<Aside type="tip">
+It is good practice to consider if your data sampling package needs to supply privacy-protecting functions, and if so, add these to the default privacy schema.
+</Aside>

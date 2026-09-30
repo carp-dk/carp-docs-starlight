@@ -1,0 +1,27 @@
+---
+title: "Notifications and background"
+description: "Local notifications and Android background execution"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+- [`FlutterLocalNotificationManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/FlutterLocalNotificationManager-class.html) implements `NotificationManager` using `flutter_local_notifications`. The runtime uses it to notify users about app tasks. Your app can use the same manager for its own notifications.
+- `BackgroundService` keeps sensing alive on Android with a foreground service (`flutter_background`). On iOS it does nothing.
+
+Both need platform setup in your app: see [Run in production](/carp-mobile-sensing/run-in-production).
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`infrastructure/services/local_notification_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/local_notification_manager.dart) | `FlutterLocalNotificationManager` |
+| [`domain/services/notification_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/services/notification_manager.dart) | The `NotificationManager` interface |
+| [`infrastructure/services/background_service.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/background_service.dart) | `BackgroundService` |
+
+## Notification setup
+
+The default notification controller used in CAMS is [FlutterLocalNotificationManager](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/FlutterLocalNotificationManager-class.html), which uses the [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) plugin. It supports scheduling and receiving notifications while the app is in foreground, background, or terminated, but requires platform-specific setup.
+
+<Aside>
+Follow the [flutter_local_notifications README](https://pub.dev/packages/flutter_local_notifications) and platform setup guides for [Android](https://pub.dev/packages/flutter_local_notifications#-android-setup) and [iOS](https://pub.dev/packages/flutter_local_notifications#-ios-setup).
+</Aside>

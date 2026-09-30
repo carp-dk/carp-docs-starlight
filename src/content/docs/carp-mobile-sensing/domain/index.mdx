@@ -1,0 +1,40 @@
+---
+title: "Domain"
+description: "What lives in lib/domain: the study protocol and everything it is made of"
+sidebar:
+  label: Overview
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`lib/domain/` describes **what a study is**. Nothing in it collects data: it holds the classes you use to write a study protocol, and the data classes a study produces.
+
+It extends the platform-independent [`carp_core`](https://pub.dev/packages/carp_core) domain model with what a phone needs (`Smartphone`, `SmartphoneStudyProtocol`, `AppTask`, data endpoints, transformers). Both are serialized to JSON, so a protocol can be stored, sent to a server, and deployed to a phone.
+
+![The CARP study protocol domain model](/carp-mobile-sensing/images/carp_protocol_domain.svg)
+
+A protocol reads left to right: a **trigger** says *when*, a **task** says *what to do*, and its **measures** say *which data*. Task controls join triggers to tasks.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/smartphone_protocol.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/smartphone_protocol.dart) | The protocol you write |
+| [`domain/core/triggers.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/triggers.dart) | All triggers |
+| [`domain/core/tasks.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/tasks.dart), [`domain/core/app_task.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/app_task.dart) | Background, function and app tasks |
+| [`domain/core/data.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data.dart), [`domain/core/data_types.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data_types.dart), [`domain/core/sampling_configurations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/sampling_configurations.dart) | What is measured, and how |
+| [`domain/core/device_configurations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/device_configurations.dart), [`domain/core/device_registrations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/device_registrations.dart) | The phone and other devices |
+| [`domain/core/data_endpoint.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data_endpoint.dart), [`domain/core/transformers.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/transformers.dart) | Where data goes, and how it is reshaped |
+| [`domain/services/`](https://github.com/carp-dk/carp.sensing-flutter/tree/main/carp_mobile_sensing/lib/domain/services/) | Interfaces implemented elsewhere: `DataManager`, `NotificationManager`, `StudyProtocolManager`, `SamplingPackage` |
+
+## Pages
+
+<CardGrid>
+  <LinkCard title="Study protocol" href="/carp-mobile-sensing/domain/study-protocol" description="Protocol, deployment and study" />
+  <LinkCard title="Triggers" href="/carp-mobile-sensing/domain/triggers" description="When to collect, and how to add your own" />
+  <LinkCard title="Tasks and app tasks" href="/carp-mobile-sensing/domain/tasks" description="What to do when triggered" />
+  <LinkCard title="Measures and data" href="/carp-mobile-sensing/domain/measures-and-data" description="Measure types, sampling configurations, measurements" />
+  <LinkCard title="Devices" href="/carp-mobile-sensing/domain/devices" description="The phone, BLE devices and online services" />
+  <LinkCard title="Data endpoints and privacy" href="/carp-mobile-sensing/domain/data-endpoints-and-privacy" description="Where data goes and how it is transformed" />
+  <LinkCard title="JSON serialization" href="/carp-mobile-sensing/domain/json-serialization" description="Polymorphic JSON for your own classes" />
+</CardGrid>

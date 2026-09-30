@@ -1,0 +1,116 @@
+---
+title: "Executors"
+description: "How a protocol becomes running probes"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Executors turn the protocol into running code. Each is created by the [`ExecutorFactory`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/ExecutorFactory-class.html), from the *type* of the trigger or task it executes.
+
+| Executor | File | Does |
+| --- | --- | --- |
+| [`SmartphoneDeploymentExecutor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SmartphoneDeploymentExecutor-class.html) | `deployment_executor.dart` | Starts one task control executor per task control in the deployment |
+| [`TaskControlExecutor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/TaskControlExecutor-class.html) | `task_control_executors.dart` | Pairs one trigger with one task. `AppTaskControlExecutor` is the variant for app tasks |
+| [`TriggerExecutor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/TriggerExecutor-class.html) | `trigger_executors.dart` | Waits for its trigger, then starts or stops the task |
+| [`TaskExecutor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/TaskExecutor-class.html) | `task_executors.dart` | `BackgroundTaskExecutor`, `FunctionTaskExecutor`, `AppTaskExecutor` |
+| [`Probe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/Probe-class.html) | `probes.dart` | Reads one sensor. Created via the [`SamplingPackageRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SamplingPackageRegistry-class.html) |
+
+A `BackgroundTaskExecutor` asks `SamplingPackageRegistry().create(measure.type)` for a probe per measure. An `AppTaskExecutor` puts a user task in the queue of the `AppTaskController`.
+
+## Lifecycle
+
+All executors share the `ExecutorState` machine:
+
+`Created` → `Initialized` → `Resumed` ⇄ `Paused` → `Disposed`
+
+`PausedButShouldBeResumed` is used when the OS drops a device and it should resume on reconnect. `Undefined` means it could not start, e.g. the probe is not supported on this phone.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`runtime/executors/executors.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/executors.dart) | `Executor` and the state machine |
+| [`runtime/executors/executor_factory.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/executor_factory.dart) | `ExecutorFactory`, `TriggerFactory` |
+| [`runtime/executors/deployment_executor.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/deployment_executor.dart) | `SmartphoneDeploymentExecutor` |
+| [`runtime/executors/task_control_executors.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/task_control_executors.dart) | `TaskControlExecutor`, `AppTaskControlExecutor` |
+| [`runtime/executors/trigger_executors.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/trigger_executors.dart) | One executor per trigger kind |
+| [`runtime/executors/task_executors.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/task_executors.dart) | `TaskExecutor` and its three subclasses |
+| [`runtime/executors/probes.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/probes.dart) | Base probes: `MeasurementProbe`, `StreamProbe`, `IntervalProbe`, `PeriodicStreamProbe` and buffering variants |
+
+## Base probes
+
+Extend the base probe that matches how your sensor delivers data. See [Write a probe](/carp-mobile-sensing/sampling-packages/create-your-own/probe).
+
+## Define a trigger executor
+
+Each trigger needs a corresponding `TriggerExecutor` to execute the trigger on sampling runtime. An example of a `RemoteTriggerExecutor` executor is shown below. Every [`Executor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/Executor-class.html) in CAMS can implement runtime behavior on init, start, stop, restart, and dispose. The abstract class [`TriggerExecutor`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/TriggerExecutor-class.html) is a convenient class to use for the implementation of a trigger executor since it has default implementations of all methods. Hence, you only need to override the lifecycle methods you need something to happen. Typically -- and as shown below -- the most relevant method to override is the `onStart()` method which is called when sensing is started. In this method, you will implement the trigger logic. In the `RemoteTriggerExecutor` the trigger starts a periodic timer that regularly checks the resources specified by the URI in the trigger configuration. If there is a resource available, it triggers by calling the `onTrigger()` callback method.
+
+```dart
+/// Executes a [RemoteTrigger], i.e. check if there is a resource on
+/// the server and triggers if so.
+class RemoteTriggerExecutor extends TriggerExecutor<RemoteTrigger> {
+  final client = Client();
+
+  @override
+  Future<bool> onStart() async {
+    // Set up a periodic timer to look for a resource at the specified URI
+    timer = Timer.periodic(configuration!.interval, (_) async {
+      var response = await client.get(
+        Uri.parse(Uri.encodeFull(configuration!.uri)),
+      );
+
+      if (response.statusCode == HttpStatus.ok) {
+        // If there is a resource at the specified URI, then trigger this executor
+        onTrigger();
+      }
+    });
+    return true;
+  }
+}
+```
+
+<Aside type="caution">
+  Note that this trigger executor is very simplistic and does not cover any edge cases, like exceptions from network errors.
+</Aside>
+
+## Define and register a trigger factory
+
+The last step is to define a [`TriggerFactory`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/TriggerFactory-class.html) that knows how to map triggers to their executors on runtime. An example of the `RemoteTriggerFactory` is shown below. Note that a factory can handle multiple triggers, as defined in the set of trigger `types` it supports. The main method of the factory is the `create` method that can create the correct trigger executor for the specified trigger.
+
+```dart
+/// A [TriggerFactory] for remote triggers.
+class RemoteTriggerFactory implements TriggerFactory {
+  @override
+  Set<Type> types = {
+    // Note that this factory might support several types of remote triggers
+    RemoteTrigger,
+  };
+
+  @override
+  void onRegister() {
+    // When registering this factory add the triggers to the JSON serialization
+    FromJsonFactory().registerAll([RemoteTrigger(uri: 'uri')]);
+  }
+
+  @override
+  TriggerExecutor<TriggerConfiguration> create(TriggerConfiguration trigger) =>
+      switch (trigger) {
+        RemoteTrigger _ => RemoteTriggerExecutor(),
+        _ => ImmediateTriggerExecutor(),
+      };
+}
+```
+
+<Aside>
+  Note that in the `onRegister()` callback function, the trigger configurations are added to the `FromJsonFactory()`. This allows trigger configurations defined in a study protocol to be serialized to/from JSON.
+</Aside>
+
+<Aside type="tip">
+The last step is to register this trigger factory with CAMS. This is done by calling:
+
+```dart
+ExecutorFactory().registerTriggerFactory(RemoteTriggerFactory());
+```
+
+This is typically done when initializing CAMS before any protocol is made or loaded.
+</Aside>

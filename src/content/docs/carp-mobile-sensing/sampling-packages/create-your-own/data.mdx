@@ -1,0 +1,64 @@
+---
+title: "1. Define the data"
+description: "MugSip: the payload of one measurement"
+---
+
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Start with the answer, not the Bluetooth. One sip is: how hot, how much.
+
+```dart
+/// One sip from the smart mug.
+@JsonSerializable(includeIfNull: false)
+class MugSip extends Data {
+  /// How hot the coffee was, in degrees Celsius.
+  double temperature;
+
+  /// How much was drunk, in milliliters.
+  int volume;
+
+  MugSip({required this.temperature, required this.volume});
+
+  @override
+  String get jsonType => MugSamplingPackage.SIP;
+
+  @override
+  Function get fromJsonFunction => _$MugSipFromJson;
+  factory MugSip.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson(json) as MugSip;
+  @override
+  Map<String, dynamic> toJson() => _$MugSipToJson(this);
+}
+```
+
+What each line is for:
+
+* `extends Data`: everything a probe measures is a [`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html) object. It ends up inside a `Measurement`.
+* `@JsonSerializable`: the data is written to JSON ([JSON serialization](/carp-mobile-sensing/domain/json-serialization)). `build_runner` generates `_$MugSipFromJson` and `_$MugSipToJson`.
+* `jsonType`: the name of the measure type, `dk.cachet.carp.mug.sip`. It becomes `__type` in the JSON and is the same string a protocol uses in `Measure(type: ...)`.
+* `fromJsonFunction` and `fromJson`: how CAMS creates a `MugSip` from JSON. It finds it through `FromJsonFactory`, where you register it in [step 4](/carp-mobile-sensing/sampling-packages/create-your-own/sampling-package).
+
+## What a stored sip looks like
+
+```json
+{
+  "sensorStartTime": 1790788396315955,
+  "data": {
+    "__type": "dk.cachet.carp.mug.sip",
+    "temperature": 61.0,
+    "volume": 25
+  }
+}
+```
+
+`sensorStartTime` is microseconds since epoch (UTC). The `data` part is your class.
+
+## Generate the JSON code
+
+```bash
+dart run build_runner build
+```
+
+<Aside type="tip">
+Privacy: a package can also register data transformers, for example to round the temperature. See [Data endpoints and privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy#add-your-own-transformers).
+</Aside>

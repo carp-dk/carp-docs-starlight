@@ -1,0 +1,91 @@
+---
+title: "Triggers"
+description: "When data collection starts and stops"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/triggers.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/triggers.dart) | Every trigger that ships with CAMS |
+| [`runtime/executors/trigger_executors.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/trigger_executors.dart) | The matching executors (see [Executors](/carp-mobile-sensing/runtime/executors)) |
+
+## Triggers
+
+Triggers are configured via a [`TriggerConfiguration`](https://pub.dev/documentation/carp_core/latest/common/TriggerConfiguration-class.html) and define the temporal configuration of a study, i.e., **when** data sampling is done.
+CAMS comes with a set of built-in triggers:
+
+| Trigger | Description |
+| --- | --- |
+| [`ImmediateTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ImmediateTrigger-class.html) | Starts sampling immediately. |
+| [`OneTimeTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/OneTimeTrigger-class.html) | Triggers only once during a deployment. |
+| [`DelayedTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DelayedTrigger-class.html) | Delays sampling for the specified `delay` measured from sensing start. |
+| [`ElapsedTimeTrigger`](https://pub.dev/documentation/carp_core/latest/common/ElapsedTimeTrigger-class.html) | Delays sampling for the specified `delay` measured from study deployment start. |
+| [`PassiveTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PassiveTrigger-class.html) | Can be started manually with `resume` and paused with `pause`. |
+| [`PeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicTrigger-class.html) | Runs periodically with a fixed period. |
+| [`DateTimeTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DateTimeTrigger-class.html) | Schedules sampling at a specific date and time. |
+| [`RecurrentScheduledTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/RecurrentScheduledTrigger-class.html) | Schedules sampling with a recurrent date/time pattern. |
+| [`CronScheduledTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CronScheduledTrigger-class.html) | Resumes and pauses sampling based on a cron expression. |
+| [`SamplingEventTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingEventTrigger-class.html) | Starts when a sampling event occurs (for example entering a geofence). |
+| [`ConditionalSampling EventTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ConditionalSamplingEventTrigger-class.html) | Resumes/pauses based on the result of a Dart function. |
+| [`ConditionalPeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ConditionalPeriodicTrigger-class.html) | Periodically checks if an app-specific condition is met. |
+| [`RandomRecurrentTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/RandomRecurrentTrigger-class.html) | Triggers a random number of times within a defined daily period. |
+| [`UserTaskTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/UserTaskTrigger-class.html) | Triggers based on the state of a [`UserTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/UserTask-class.html). |
+| [`NoUserTaskTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/NoUserTaskTrigger-class.html) | Triggers when a certain user task is **not** on the task list. |
+| [`AppLifecycleTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppLifecycleTrigger-class.html) | Triggers when the life cycle of an app changes, as defined in [AppLifecycleState](https://api.flutter.dev/flutter/dart-ui/AppLifecycleState.html). |
+
+<Aside>
+  You can extend CAMS with your own custom triggers - see [
+Adding New Triggers](/carp-mobile-sensing/domain/triggers).
+</Aside>
+
+## Triggers that ship with CAMS
+
+| Kind | Triggers |
+| --- | --- |
+| Immediately | [`NoOpTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/NoOpTrigger-class.html), [`ImmediateTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ImmediateTrigger-class.html), [`OneTimeTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/OneTimeTrigger-class.html), [`PassiveTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PassiveTrigger-class.html) |
+| After a delay or interval | [`DelayedTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DelayedTrigger-class.html), [`PeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicTrigger-class.html) |
+| At a time | [`DateTimeTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/DateTimeTrigger-class.html), [`RecurrentScheduledTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/RecurrentScheduledTrigger-class.html), [`CronScheduledTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CronScheduledTrigger-class.html), [`RandomRecurrentTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/RandomRecurrentTrigger-class.html) |
+| On data | [`SamplingEventTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingEventTrigger-class.html), [`ConditionalSamplingEventTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ConditionalSamplingEventTrigger-class.html), [`ConditionalPeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/ConditionalPeriodicTrigger-class.html) |
+
+## Add your own trigger
+
+Triggers are a central part of a `StudyProtocol` and CAMS allows creating your own triggers and add them to the framework. This is done by the following steps:
+
+1. Define one or more new `Trigger`s.
+2. Define a `TriggerExecutor` for each new trigger.
+3. Define and register a `TriggerFactory` that knows how to create the correct `TriggerExecutor` based on a specific trigger.
+
+### Define a new trigger
+
+Any trigger should extend the `TriggerConfiguration` class and implement domain-specific fields that configure this trigger. In the example below, we have defined a `RemoteTrigger` that listens to resources on a server identified by a URI, and triggers when this resource is available.
+
+```dart
+/// A trigger that triggers based on event from a remote server.
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class RemoteTrigger extends TriggerConfiguration {
+  RemoteTrigger({
+    required this.uri,
+    this.interval = const Duration(minutes: 10),
+  }) : super();
+
+  /// The URI of the resource to listen to.
+  String uri;
+
+  /// How often should we check the server?
+  Duration interval;
+
+  @override
+  Function get fromJsonFunction => _$RemoteTriggerFromJson;
+  factory RemoteTrigger.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson<RemoteTrigger>(json);
+  @override
+  Map<String, dynamic> toJson() => _$RemoteTriggerToJson(this);
+}
+```
+
+Trigger configurations are part of a study protocol and hence needs to be [serializable to/from JSON](/carp-mobile-sensing/domain/json-serialization).
+
+The trigger only describes *when*. It is run by a trigger executor, which is described under [Executors](/carp-mobile-sensing/runtime/executors#define-a-trigger-executor).
