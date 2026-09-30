@@ -18,6 +18,8 @@ assert.match(page, /href="\/api\/carp_core\/[^"]+"/, 'cross-package link to carp
 assert.doesNotMatch(page, /href="\.\.\//, 'no dartdoc-relative links left');
 assert.doesNotMatch(page, /pub\.dev\/documentation\/carp_core/, 'no pub.dev links for packages we host');
 assert.ok(sidebar.some((g) => g.items?.some((i) => i.label === 'carp_core')), 'sidebar has carp_core');
+const runtime = sidebar.flatMap((g) => g.items ?? []).find((i) => i.label === 'carp_mobile_sensing').items.find((i) => i.label === 'runtime');
+assert.ok(runtime.items.some((i) => i.slug === 'api/carp_mobile_sensing/runtime/usertask'), 'sidebar lists classes under their library');
 assert.equal(links['carp_mobile_sensing/runtime/UserTask-class.html'], '/api/carp_mobile_sensing/runtime/usertask/', 'pub.dev link map');
 assert.equal(links['carp_core/~/DeploymentService-class.html'], '/api/carp_core/deployment/deploymentservice/', 'old library folder fallback');
 console.log('convert check passed');
