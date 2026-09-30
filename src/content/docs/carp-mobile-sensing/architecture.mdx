@@ -25,12 +25,25 @@ Sampling packages sit in a subfolder of `infrastructure/` but are exported as th
 3. **Sampling packages.** Each probe reads a sensor or device and emits a `Measurement`.
 4. **Infrastructure.** The study's data manager stores or uploads each measurement. State is persisted, so the study resumes after a restart.
 
-## How the parts depend on each other
+## How the parts relate
 
-- The **domain** knows nothing about the others. It only describes.
-- The **runtime** uses the domain, and finds probes through the `SamplingPackageRegistry`.
-- **Infrastructure** implements interfaces the domain declares (`DataManager`, `NotificationManager`), so you can replace them.
-- **Sampling packages** implement the `SamplingPackage` interface and extend the runtime's `Probe` and `DeviceManager`. That is what makes it possible to [create your own](/carp-mobile-sensing/sampling-packages/create-your-own/).
+`lib/domain/` has two folders:
+
+- `core/` is the study: protocol, triggers, tasks, measures, devices, data classes.
+- `services/` holds the **interfaces CAMS can be extended through**: `DataManager`, `NotificationManager`, `StudyProtocolManager` and `SamplingPackage`. They declare *what* is needed. They are not part of the protocol.
+
+The other parts fill them in:
+
+| Interface (`domain/services/`) | Implemented in |
+| --- | --- |
+| `DataManager` | Infrastructure: console, file and SQLite data managers |
+| `NotificationManager` | Infrastructure: `FlutterLocalNotificationManager` |
+| `StudyProtocolManager` | Infrastructure: `FileStudyProtocolManager` |
+| `SamplingPackage` | Sampling packages: device, sensors, and your own |
+
+Replace an implementation to change how CAMS stores data or notifies. Register a new `SamplingPackage` to add measures.
+
+This is not a strict layering. The interfaces refer to runtime classes (`NotificationManager` takes a `UserTask`, `SamplingPackage` returns a `Probe` and a `DeviceManager`), and the runtime uses the domain classes. They are folders of one package.
 
 ## Outside the package
 
