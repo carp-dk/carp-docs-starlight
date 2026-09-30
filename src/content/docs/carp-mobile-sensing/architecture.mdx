@@ -32,12 +32,23 @@ Sampling packages sit in a subfolder of `infrastructure/` but are exported as th
 | **Executor** | The runtime object that carries out a trigger, task or probe | [Executors](/carp-mobile-sensing/runtime/executors) |
 | **Data manager** | Stores or uploads measurements | [Data managers](/carp-mobile-sensing/infrastructure/data-managers) |
 
-## What happens when a study runs
+## The four parts
 
-1. **Domain.** You write a study protocol: for example *every morning at 08:00 (trigger), ask the user to fill in a survey (task)*, and *all day, collect steps (measure) in the background (task)*.
-2. **Runtime.** `SmartPhoneClientManager` adds the protocol as a study. Executors wait for each trigger and then run its task.
-3. **Sampling packages.** A background task creates one probe per measure. The probe reads the sensor and emits measurements.
-4. **Infrastructure.** The data manager stores or uploads each measurement. State is saved, so the study resumes after a restart.
+### Domain
+
+The classes that describe a study: the protocol, its triggers, tasks and measures, and the data classes. Its responsibility is to say *what* the study is. It does not run anything.
+
+### Runtime
+
+The code that runs a study on the phone. You start, pause and resume studies through `SmartPhoneClientManager`, and executors carry out the triggers and tasks. Its responsibility is to run the study and keep the list of tasks the user has to do.
+
+### Sampling packages
+
+The code that reads sensors and devices. Each package offers a set of measures and a probe for each one. Its responsibility is to collect the data.
+
+### Infrastructure
+
+The services around the study. Data managers store or upload measurements, persistence saves the state so a study resumes after a restart, and notifications and background execution work with the OS. Its responsibility is everything that saves data or talks to the OS.
 
 ## How the parts relate
 
