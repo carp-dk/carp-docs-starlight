@@ -1,39 +1,64 @@
 ---
 title: "1. Define the data"
-description: "The measurement payload of your package"
+description: "MugSip: the payload of one measurement"
 ---
 
-import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-Start with what you measure. Each measure type has a `Data` subclass that is serialized to JSON, so it needs [JSON serialization](/carp-mobile-sensing/domain/json-serialization).
+Start with the answer, not the Bluetooth. One sip is: how hot, how much.
 
-## The data class
+```dart
+/// One sip from the smart mug.
+@JsonSerializable(includeIfNull: false)
+class MugSip extends Data {
+  /// How hot the coffee was, in degrees Celsius.
+  double temperature;
 
-Next, you should define the package-specific [`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html) that the package collects.
-Here is the example of the collected `FreeMemory` data item;
+  /// How much was drunk, in milliliters.
+  int volume;
 
-````dart
-/// Holds information about free memory on the phone.
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
-class FreeMemory extends Data {
-  static const dataType = DeviceSamplingPackage.FREE_MEMORY;
-
-  /// Amount of free physical memory in bytes.
-  int? freePhysicalMemory;
-
-  /// Amount of free virtual memory in bytes.
-  int? freeVirtualMemory;
-
-  FreeMemory([this.freePhysicalMemory, this.freeVirtualMemory]) : super();
+  MugSip({required this.temperature, required this.volume});
 
   @override
-  Function get fromJsonFunction => _$FreeMemoryFromJson;
-  factory FreeMemory.fromJson(Map<String, dynamic> json) => FromJsonFactory().fromJson(json) as FreeMemory;
+  String get jsonType => MugSamplingPackage.SIP;
+
   @override
-  Map<String, dynamic> toJson() => _$FreeMemoryToJson(this);
+  Function get fromJsonFunction => _$MugSipFromJson;
+  factory MugSip.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson(json) as MugSip;
+  @override
+  Map<String, dynamic> toJson() => _$MugSipToJson(this);
 }
-````
+```
+
+What each line is for:
+
+* `extends Data`: everything a probe measures is a [`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html) object. It ends up inside a `Measurement`.
+* `@JsonSerializable`: the data is written to JSON ([JSON serialization](/carp-mobile-sensing/domain/json-serialization)). `build_runner` generates `_$MugSipFromJson` and `_$MugSipToJson`.
+* `jsonType`: the name of the measure type, `dk.cachet.carp.mug.sip`. It becomes `__type` in the JSON and is the same string a protocol uses in `Measure(type: ...)`.
+* `fromJsonFunction` and `fromJson`: how CAMS creates a `MugSip` from JSON. It finds it through `FromJsonFactory`, where you register it in [step 4](/carp-mobile-sensing/sampling-packages/create-your-own/sampling-package).
+
+## What a stored sip looks like
+
+```json
+{
+  "sensorStartTime": 1790788396315955,
+  "data": {
+    "__type": "dk.cachet.carp.mug.sip",
+    "temperature": 61.0,
+    "volume": 25
+  }
+}
+```
+
+`sensorStartTime` is microseconds since epoch (UTC). The `data` part is your class.
+
+## Generate the JSON code
+
+```bash
+dart run build_runner build
+```
 
 <Aside type="tip">
-A small note on **Privacy**; it is possible to add privacy protection of collected data to the package. See [Creating Data Privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy#creating-data-privacy) for how to do this.
+Privacy: a package can also register data transformers, for example to round the temperature. See [Data endpoints and privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy#add-your-own-transformers).
 </Aside>

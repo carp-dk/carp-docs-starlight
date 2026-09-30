@@ -1,63 +1,40 @@
 ---
 title: "2. Write a probe"
-description: "Read the sensor and emit measurements"
+description: "SipProbe: turn the mug's sips into measurements"
 ---
 
-import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-A probe reads one sensor and emits `Measurement`s. Extend the base probe that fits how the sensor delivers data: `StreamProbe` for a stream, `MeasurementProbe` for one reading, `IntervalProbe` for repeated readings. See [Executors](/carp-mobile-sensing/runtime/executors).
+A probe reads one source and emits `Measurement`s. The mug pushes a sip whenever it happens, so the fitting base class is [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html): override `stream` and CAMS subscribes when the study resumes.
 
-## The probe class
+```dart
+/// Emits one [MugSip] measurement every time the mug reports a sip.
+class SipProbe extends StreamProbe {
+  @override
+  MugDeviceManager get deviceManager => super.deviceManager as MugDeviceManager;
 
-The next step is to implement probes for each measure type. A probe collects the data and returns it as [`Measurement`](https://pub.dev/documentation/carp_core/latest/data/Measurement-class.html).
+  @override
+  Stream<Measurement>? get stream => deviceManager.isConnected
+      ? deviceManager.mug!.sips.map(
+          (sip) => Measurement.fromData(
+            MugSip(temperature: sip.temperature, volume: sip.volume),
+          ),
+        )
+      : null;
+}
+```
 
-The abstract [`Probe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/Probe-class.html) interface defines a probe and how to implement probes. But in order to create your own probes, CAMS has a set of predefined, abstract probes to extend from:
+* `deviceManager` is set by the registry. The override only narrows its type, so the probe can reach the mug. See [step 3](/carp-mobile-sensing/sampling-packages/create-your-own/device-manager).
+* While the mug is not connected, `stream` is `null` and the probe collects nothing.
+* `Measurement.fromData` wraps the `MugSip` and stamps `sensorStartTime` with now. If the device has its own timestamp, pass it as the second argument (microseconds since epoch), as `ESenseSensorProbe` does.
 
-| Probe base class | Description |
+## Choose the base class by how data arrives
+
+| If the source… | Extend |
 | --- | --- |
-| [`MeasurementProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/MeasurementProbe-class.html) | Collects one measurement and then stops. |
-| [`IntervalProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/IntervalProbe-class.html) | Collects measurements at a regular interval. |
-| [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html) | Listens continuously to a stream of measurements. |
-| [`PeriodicStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/PeriodicStreamProbe-class.html) | Listens to a stream during periodic windows defined by interval and duration. |
-| [`BufferingPeriodicProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicProbe-class.html) | Buffers data for a period and emits a derived measurement. |
-| [`BufferingInterval StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingIntervalStreamProbe-class.html) | Buffers an underlying stream and emits a measurement on regular intervals. |
-| [`BufferingPeriodic StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicStreamProbe-class.html) | Buffers an underlying stream for a fixed period and then emits a measurement. |
+| pushes events (mug sips, screen on/off) | [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html) |
+| is read once (device info) | [`MeasurementProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/MeasurementProbe-class.html) |
+| is read every N seconds (free memory) | [`IntervalProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/IntervalProbe-class.html), implement `getMeasurement()` |
+| streams fast and you want windows or averages | [`PeriodicStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/PeriodicStreamProbe-class.html), [`BufferingPeriodicProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicProbe-class.html), [`BufferingIntervalStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingIntervalStreamProbe-class.html), [`BufferingPeriodicStreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BufferingPeriodicStreamProbe-class.html) |
 
-The [`DeviceProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/DeviceProbe-class.html) is an example of a simple `MeasurementProbe` that collects device information about the phone using the [device_info_plus](https://pub.dev/packages/device_info_plus) plugin and map this to a [`DeviceInformation`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/DeviceInformation-class.html) data and returns a `Measurement` with this data.
-As shown below, since the `DeviceProbe` extends `MeasurementProbe` it just need to implement the `getMeasurement()` method, which returns the device info mapped to a `DeviceInformation` data item.
-
-````dart
-/// A probe that collects the device info about this device.
-class DeviceProbe extends MeasurementProbe {
-  @override
-  Future<Measurement?> getMeasurement() async =>
-      Measurement.fromData(DeviceInformation(
-        deviceData: DeviceInfo().deviceData,
-        platform: DeviceInfo().platform,
-        deviceId: DeviceInfo().deviceID,
-        deviceName: DeviceInfo().deviceName,
-        deviceModel: DeviceInfo().deviceModel,
-        deviceManufacturer: DeviceInfo().deviceManufacturer,
-        operatingSystem: DeviceInfo().operatingSystemName,
-        hardware: DeviceInfo().hardware,
-      ));
-}
-````
-
-The [`ScreenProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/ScreenProbe-class.html) is an example of a [`StreamProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/StreamProbe-class.html) that collects screen activity data. This probe implements the `stream` property, which maps screen events from the [screen_state](https://pub.dev/packages/screen_state) plugin to `ScreenEvent` data objects, which again is wrapped in a measurement using the `Measurement.fromData` factory.
-
-````dart
-/// A probe collecting screen events:
-///  - SCREEN ON
-///  - SCREEN OFF
-///  - SCREEN UNLOCK
-/// which are stored as a [ScreenEvent].
-class ScreenProbe extends StreamProbe {
-  Screen screen = Screen();
-
-  @override
-  Stream<Measurement> get stream => screen.screenStateStream.map(
-    (event) => Measurement.fromData(ScreenEvent.fromScreenStateEvent(event)),
-  );
-}
-````
+See [Executors](/carp-mobile-sensing/runtime/executors) for how the probe is started, paused and disposed.

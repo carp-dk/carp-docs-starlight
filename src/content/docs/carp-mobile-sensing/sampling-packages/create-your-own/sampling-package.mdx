@@ -1,141 +1,80 @@
 ---
 title: "4. Write the SamplingPackage"
-description: "Declare measure types, sampling configurations and create probes"
+description: "MugSamplingPackage: the one object CAMS knows about"
 ---
 
-import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside, LinkCard, CardGrid, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-The package ties steps 1 to 3 together: it declares the measure types, their default sampling configuration, and returns a probe for each type.
+The data, probe and device manager are useless until CAMS can find them. The [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) is the table of contents:
 
-## The package class
+```dart
+class MugSamplingPackage implements SamplingPackage {
+  static const String MUG_NAMESPACE = '${NameSpace.CARP}.mug';
+  static const String SIP = '$MUG_NAMESPACE.sip';
 
-The first step is that your new sampling package should implement the [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) interface:
-
-````dart
-class DeviceSamplingPackage extends SmartphoneSamplingPackage {
-  /// Measure type for collection of basic device information 
-  static const String DEVICE_INFORMATION =
-      '${CarpDataTypes.CARP_NAMESPACE}.deviceinformation';
-
-  /// Measure type for collection of free physical and virtual memory.
-  static const String FREE_MEMORY =
-      '${CarpDataTypes.CARP_NAMESPACE}.freememory';
-
-  /// Measure type for collection of battery level and charging status.
-  static const String BATTERY_STATE =
-      '${CarpDataTypes.CARP_NAMESPACE}.batterystate';
-
-  /// Measure type for collection of screen events (on/off/unlocked).
-  static const String SCREEN_EVENT =
-      '${CarpDataTypes.CARP_NAMESPACE}.screenevent';
-
-  /// Measure type for collection of the time zone of the device.
-  static const String TIMEZONE = '${CarpDataTypes.CARP_NAMESPACE}.timezone';
+  final DeviceManager _deviceManager = MugDeviceManager(MugDevice.DEVICE_TYPE);
 
   @override
   DataTypeSamplingSchemeMap get samplingSchemes =>
       DataTypeSamplingSchemeMap.from([
-        DataTypeSamplingScheme(CamsDataTypeMetaData(
-          type: DEVICE_INFORMATION,
-          displayName: "Device Information",
-          timeType: DataTimeType.POINT,
-          dataEventType: DataEventType.ONE_TIME,
-        )),
         DataTypeSamplingScheme(
-            CamsDataTypeMetaData(
-              type: FREE_MEMORY,
-              displayName: "Free Memory",
-              timeType: DataTimeType.POINT,
-            ),
-            IntervalSamplingConfiguration(
-              interval: const Duration(minutes: 1),
-            )),
-        DataTypeSamplingScheme(CamsDataTypeMetaData(
-          type: BATTERY_STATE,
-          displayName: "Battery State",
-          timeType: DataTimeType.POINT,
-        )),
-        DataTypeSamplingScheme(CamsDataTypeMetaData(
-          type: SCREEN_EVENT,
-          displayName: "Screen Events",
-          timeType: DataTimeType.POINT,
-        )),
-        DataTypeSamplingScheme(CamsDataTypeMetaData(
-          type: TIMEZONE,
-          displayName: "Device Timezone",
-          timeType: DataTimeType.POINT,
-          dataEventType: DataEventType.ONE_TIME,
-        )),
+          DataTypeMetaData(
+            type: SIP,
+            displayName: 'Coffee sips',
+            timeType: DataTimeType.POINT,
+          ),
+        ),
       ]);
+
+  @override
+  List<DataTypeMetaData> get dataTypes => samplingSchemes.dataTypes;
+
+  @override
+  Probe? create(String type) => switch (type) {
+        SIP => SipProbe(),
+        _ => null,
+      };
 
   @override
   void onRegister() {
     FromJsonFactory().registerAll([
-      DeviceInformation(),
-      BatteryState(),
-      FreeMemory(),
-      ScreenEvent(),
-      Timezone(''),
+      MugDevice(),
+      BLEDeviceRegistration(bleAddress: ''),
+      MugSip(temperature: 0, volume: 0),
     ]);
   }
 
   @override
-  Probe? create(String type) => switch (type) {
-        DEVICE_INFORMATION => DeviceProbe(),
-        FREE_MEMORY => MemoryProbe(),
-        BATTERY_STATE => BatteryProbe(),
-        TIMEZONE => TimezoneProbe(),
-        SCREEN_EVENT => (Platform.isAndroid) ? ScreenProbe() : null,
-        _ => null,
-      };
-}
-````
-
-The measures supported by this package are listed as static strings, such as `FREE_MEMORY` defining the type `dk.cachet.carp.freememory`.
-The `DataTypeSamplingSchemeMap` defines the configuration of each measure, by specifying the [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) for each measure and its sampling configuration (if needed). The `onRegister()` method is called when the package is registered and in this case registers the data classes for JSON serialization. Finally, the `create()` method is called when a probe is to be created and returns the right probe based on the measure type.
-
-<Aside>
-
-  A note on **Permissions** - the [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) allows the specification of what OS-specific permissions are needed to collect a measure.
-  
-  In the measures used as an example above, no permissions are required. However, in the [`SensorSamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage-class.html), the `activityRecognition` permission is required in order to collect step counts, as shown in the [`samplingSchemes`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage/samplingSchemes.html) of that package.
-
-</Aside>
-
-## Sampling configurations
-
-Default sampling configurations can be specified as part of `samplingSchemes`, like the `IntervalSamplingConfiguration` specified for the `FREE_MEMORY` measure type above.
-
-There are several built-in sampling configurations available:
-
-| Sampling configuration | Description |
-| --- | --- |
-| [`PersistentSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PersistentSamplingConfiguration-class.html) | Persistently saves the state of data sampling for continuous long-running sampling behavior across app restart. |
-| [`HistoricSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/HistoricSamplingConfiguration-class.html) | Configures retrospective or backfilled collection of historical data. |
-| [`IntervalSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) | Samples at a fixed interval (delay) between measurements. |
-| [`PeriodicSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicSamplingConfiguration-class.html) | Samples in periodic windows using both interval and duration settings. |
-
-But you can write your own sampling configuration tailored to a specific measure and hence how data should be collected in a probe. As an example of how to write a sampling configuration, the [`IntervalSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) is shown below:
-
-```dart
-/// A sampling configuration that allows configuring the time [interval] in
-/// between subsequent measurements.
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
-class IntervalSamplingConfiguration extends PersistentSamplingConfiguration {
-  /// Sampling interval (i.e., delay between sampling).
-  Duration interval;
-
-  IntervalSamplingConfiguration({required this.interval}) : super();
+  String get deviceType => MugDevice.DEVICE_TYPE;
 
   @override
-  Function get fromJsonFunction => _$IntervalSamplingConfigurationFromJson;
-  @override
-  Map<String, dynamic> toJson() => _$IntervalSamplingConfigurationToJson(this);
-  factory IntervalSamplingConfiguration.fromJson(Map<String, dynamic> json) =>
-      FromJsonFactory().fromJson(json) as IntervalSamplingConfiguration;
+  DeviceManager get deviceManager => _deviceManager;
 }
 ```
 
-Note that a sampling configuration must extend from one of the sampling configuration types (e.g., `SamplingConfiguration` or `PersistentSamplingConfiguration`).
+| Member | Used by CAMS for |
+| --- | --- |
+| `SIP` | The measure type string. A protocol says `Measure(type: MugSamplingPackage.SIP)`. |
+| `samplingSchemes` / `dataTypes` | The list of measure types this package offers, with a display name, and whether it is a point in time or a time span. |
+| `create(type)` | Makes a probe for a measure type. Return `null` for types the package does not own. |
+| `onRegister()` | Runs once on registration. Register every class that is read from JSON: the device, the registration and the data. |
+| `deviceType` / `deviceManager` | Which `DeviceConfiguration` type this package handles, and the manager that connects to it. |
 
-Sampling configurations can be part of a study protocol where you can [override](https://pub.dev/documentation/carp_core/latest/common/Measure/overrideSamplingConfiguration.html) the sampling configuration of a measure.
+If you forget a class in `onRegister()`, the protocol serializes fine but fails when it is read back, because `FromJsonFactory` does not know the `__type`.
+
+<Aside>
+Permissions: [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) can list the OS permissions a measure needs (for example activity recognition for steps). A probe extending `StreamProbe` or `IntervalProbe` does not start until they are granted. A Bluetooth mug in a real app also needs the Bluetooth permissions in the manifest. See [Devices and permissions](/carp-mobile-sensing/runtime/devices-and-permissions).
+</Aside>
+
+## Sampling configurations (optional)
+
+A measure can carry a sampling configuration: *how often* or *how long* to sample. Give a default in `samplingSchemes`, and a protocol can override it per measure with `overrideSamplingConfiguration`.
+
+| Configuration | Meaning |
+| --- | --- |
+| [`IntervalSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) | Wait `interval` between measurements. |
+| [`PeriodicSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicSamplingConfiguration-class.html) | Sample for `duration` every `interval`. |
+| [`PersistentSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PersistentSamplingConfiguration-class.html) | Keeps its state across app restarts. |
+| [`HistoricSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/HistoricSamplingConfiguration-class.html) | Collects past data. |
+
+The mug pushes sips, so it needs none. A package that polled the mug's temperature would add an `IntervalSamplingConfiguration` and read it in an `IntervalProbe`.
