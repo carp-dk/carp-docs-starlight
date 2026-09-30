@@ -18,7 +18,7 @@ const q = JSON.stringify; // valid YAML scalar
  * @param {{name:string, group:string, description:string, dir:string, source:string}[]} packages
  *   `dir` = dart doc output folder, `source` = link to the source code.
  * @param {string} outDir  e.g. src/content/docs/api
- * @returns sidebar items for the API reference
+ * @returns sidebar items for the API reference + pub.dev path → URL map
  */
 export function convert(packages, outDir) {
 	// Pass 1: map every dartdoc path (per package) to our URL.
@@ -167,5 +167,17 @@ html(load(pkg, 'index.html')?.querySelector('section.desc'), pkg.name, 'index.ht
 		]),
 	]);
 
-	return [{ label: 'Overview', slug: 'api' }, ...sidebar];
+	// "<package>/<dartdoc path>" → our URL, used to rewrite pub.dev links in the guides.
+// Also "<package>/~/<path minus library folder>", for guides that still use old library folder names.
+const links = {}, loose = {};
+for (const [name, map] of urls)
+for (const [path, url] of map) {
+links[`${name}/${path}`] = url;
+const key = `${name}/~/${path.replace(/^[^/]+\//, '')}`;
+loose[key] = key in loose && loose[key] !== url ? null : url; // null = ambiguous
+}
+for (const [key, url] of Object.entries(loose)) if (url) links[key] ??= url;
+for (const [name, index] of indexes)
+for (const l of index.filter((e) => e.kind === LIBRARY)) links[`${name}/${l.href}${l.name}-library.html`] = urls.get(name).get(l.href);
+return { sidebar: [{ label: 'Overview', slug: 'api' }, ...sidebar], links };
 }

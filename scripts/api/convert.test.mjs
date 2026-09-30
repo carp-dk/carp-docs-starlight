@@ -8,7 +8,7 @@ const root = process.argv[2] ?? '.api-out';
 const out = '/tmp/api-convert-test';
 rmSync(out, { recursive: true, force: true });
 const pkg = (name) => ({ name, group: 'Core', description: name, dir: `${root}/${name}`, source: 'https://github.com/carp-dk' });
-const sidebar = convert([pkg('carp_mobile_sensing'), pkg('carp_core')], out);
+const { sidebar, links } = convert([pkg('carp_mobile_sensing'), pkg('carp_core')], out);
 
 const page = readFileSync(`${out}/carp_mobile_sensing/runtime/usertask/index.md`, 'utf8');
 assert.match(page, /^---\n[^]*?title: "UserTask"\n[^]*?---\n/, "frontmatter title");
@@ -18,4 +18,6 @@ assert.match(page, /href="\/api\/carp_core\/[^"]+"/, 'cross-package link to carp
 assert.doesNotMatch(page, /href="\.\.\//, 'no dartdoc-relative links left');
 assert.doesNotMatch(page, /pub\.dev\/documentation\/carp_core/, 'no pub.dev links for packages we host');
 assert.ok(sidebar.some((g) => g.items?.some((i) => i.label === 'carp_core')), 'sidebar has carp_core');
+assert.equal(links['carp_mobile_sensing/runtime/UserTask-class.html'], '/api/carp_mobile_sensing/runtime/usertask/', 'pub.dev link map');
+assert.equal(links['carp_core/~/DeploymentService-class.html'], '/api/carp_core/deployment/deploymentservice/', 'old library folder fallback');
 console.log('convert check passed');

@@ -46,8 +46,9 @@ for (const pkg of packages) {
 
 rmSync(DOCS, { recursive: true, force: true });
 mkdirSync(DOCS, { recursive: true });
-const sidebar = convert(built, DOCS);
+const { sidebar, links } = convert(built, DOCS);
 writeFileSync('src/api-sidebar.json', JSON.stringify(sidebar, null, '\t'));
+writeFileSync('src/api-links.json', JSON.stringify(links));
 writeFileSync(VERSION_FILE, JSON.stringify({ ...versions, generated: new Date().toISOString(), failed }, null, '\t'));
 console.log(`\nGenerated ${built.length}/${packages.length} packages.${failed.length ? ` Failed: ${failed.join(', ')}` : ''}`);
 if (!built.length) process.exit(1);

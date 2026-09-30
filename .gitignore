@@ -25,4 +25,5 @@ pnpm-debug.log*
 .api-out/
 src/content/docs/api/
 src/api-sidebar.json
+src/api-links.json
 public/api-version.json

@@ -12,26 +12,34 @@ const apiSidebar = existsSync('./src/api-sidebar.json')
 ? JSON.parse(readFileSync('./src/api-sidebar.json', 'utf8'))
 : ['api-reference'];
 
-// Prefixes root links ("/start/") with the base path, so content works under /carp-docs-starlight.
-// ponytail: regex on raw HTML nodes; drop once docs.carp.dk serves from the root.
+// Rewrites guide links to pub.dev API docs onto our generated API pages (map from scripts/api/generate.mjs),
+// and prefixes root links ("/start/") with the base path, so content works under /carp-docs-starlight.
+// ponytail: regex on raw HTML nodes; drop the base part once docs.carp.dk serves from the root.
+const apiLinks = existsSync('./src/api-links.json') ? JSON.parse(readFileSync('./src/api-links.json', 'utf8')) : {};
 const base = (process.env.BASE_PATH ?? '/').replace(/\/$/, '');
-const withBase = (v) => (typeof v === 'string' && /^\/(?!\/)/.test(v) && !v.startsWith(`${base}/`) ? base + v : v);
-const basePlugin = defineHastPlugin({
-name: 'base-path-links',
+const toApi = (v) => {
+const m = v.match(/^https?:\/\/pub\.(?:dev|dartlang\.org)\/documentation\/([^/]+)\/[^/]+\/?([^#]*)/);
+const path = m && (m[2] || 'index.html');
+return (m && (apiLinks[`${m[1]}/${path}`] ?? apiLinks[`${m[1]}/~/${path.replace(/^[^/]+\//, '')}`])) ?? v; // #anchors dropped
+};
+const withBase = (v) => (/^\/(?!\/)/.test(v) && !v.startsWith(`${base}/`) ? base + v : v);
+const fix = (v) => (typeof v === 'string' ? withBase(toApi(v)) : v);
+const linksPlugin = defineHastPlugin({
+name: 'api-and-base-links',
 element: {
 filter: ['a', 'img'],
 visit(node, ctx) {
-for (const k of ['href', 'src']) if (withBase(node.properties[k]) !== node.properties[k]) ctx.setProperty(node, k, withBase(node.properties[k]));
+for (const k of ['href', 'src']) if (fix(node.properties[k]) !== node.properties[k]) ctx.setProperty(node, k, fix(node.properties[k]));
 },
 },
 mdxJsxFlowElement: {
 filter: ['LinkCard', 'LinkButton', 'a', 'img'],
 visit(node, ctx) {
-for (const a of node.attributes) if (['href', 'src'].includes(a.name) && withBase(a.value) !== a.value) ctx.setProperty(node, a.name, withBase(a.value));
+for (const a of node.attributes) if (['href', 'src'].includes(a.name) && fix(a.value) !== a.value) ctx.setProperty(node, a.name, fix(a.value));
 },
 },
 raw(node, ctx) {
-const value = node.value.replace(/(href|src)="(\/[^"]*)"/g, (_, k, v) => `${k}="${withBase(v)}"`);
+const value = node.value.replace(/(href|src)="([^"]*)"/g, (_, k, v) => `${k}="${fix(v)}"`);
 if (value !== node.value) ctx.replaceNode(node, { type: 'raw', value });
 },
 });
@@ -40,7 +48,7 @@ export default defineConfig({
 	// GitHub Pages serves under /carp-docs-starlight until docs.carp.dk points to it.
 	site: process.env.SITE_URL ?? 'https://docs.carp.dk',
 	base: process.env.BASE_PATH ?? '/',
-markdown: { processor: satteri({ hastPlugins: base ? [basePlugin] : [] }) },
+markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 	integrations: [
 		mermaid({ autoTheme: true }), // must come before starlight
 		starlight({
