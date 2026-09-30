@@ -9,12 +9,12 @@ import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/
 
 `carp_mobile_sensing` is one Dart package with four parts. Each is a folder under `lib/`, and each has its own section in this documentation.
 
-| Part | Folder | Answers | Read |
-| --- | --- | --- | --- |
-| **Domain** | `lib/domain/` | What is a study? Protocol, triggers, tasks, measures, devices | [Domain](/carp-mobile-sensing/domain/) |
-| **Runtime** | `lib/runtime/` | How is it run? Client manager, executors, task queue | [Runtime](/carp-mobile-sensing/runtime/) |
-| **Infrastructure** | `lib/infrastructure/` | Where does it go? Data managers, persistence, notifications | [Infrastructure](/carp-mobile-sensing/infrastructure/) |
-| **Sampling packages** | `lib/infrastructure/sampling_packages/` | Where does the data come from? Probes for sensors and devices | [Sampling packages](/carp-mobile-sensing/sampling-packages/) |
+| Part | Folder | Answers |
+| --- | --- | --- |
+| [**Domain**](/carp-mobile-sensing/domain/) | `lib/domain/` | What is a study? Protocol, triggers, tasks, measures, devices |
+| [**Runtime**](/carp-mobile-sensing/runtime/) | `lib/runtime/` | How is it run? Client manager, executors, task queue |
+| [**Infrastructure**](/carp-mobile-sensing/infrastructure/) | `lib/infrastructure/` | Where does it go? Data managers, persistence, notifications |
+| [**Sampling packages**](/carp-mobile-sensing/sampling-packages/) | `lib/infrastructure/sampling_packages/` | Where does the data come from? Probes for sensors and devices |
 
 Sampling packages sit in a subfolder of `infrastructure/` but are exported as their own library (`lib/sampling_packages.dart`). Most sampling packages are separate pub.dev packages.
 
