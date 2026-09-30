@@ -1,0 +1,81 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *' # nightly 02:00 UTC; rebuilds only if a source repo changed
+  workflow_dispatch: # manual run always rebuilds
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  SITE_URL: https://carp-dk.github.io
+  BASE_PATH: /carp-docs-starlight
+  FLUTTER_VERSION: 3.47.5
+  DARTDOC_VERSION: 9.0.9
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Check for source changes
+        id: changes
+        if: github.event_name == 'schedule'
+        run: npm run api -- check && echo "changed=true" >> "$GITHUB_OUTPUT" || echo "changed=false" >> "$GITHUB_OUTPUT"
+        env:
+          LIVE_VERSION_URL: ${{ env.SITE_URL }}${{ env.BASE_PATH }}/api-version.json
+
+      - uses: subosito/flutter-action@v2
+        if: steps.changes.outputs.changed != 'false'
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Generate API reference
+        if: steps.changes.outputs.changed != 'false'
+        run: |
+          dart pub global activate dartdoc ${{ env.DARTDOC_VERSION }}
+          npm run api
+
+      - name: Check converter
+        if: steps.changes.outputs.changed != 'false'
+        run: npm run api:check -- .api-out
+
+      - name: Build site (fails on broken links)
+        if: steps.changes.outputs.changed != 'false'
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.changes.outputs.changed != 'false'
+        with:
+          path: dist
+
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.changed != 'false'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

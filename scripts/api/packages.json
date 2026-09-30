@@ -1,0 +1,28 @@
+[
+  { "group": "Core", "name": "carp_mobile_sensing", "repo": "carp-dk/carp.sensing-flutter", "path": "carp_mobile_sensing", "description": "The CARP Mobile Sensing (CAMS) framework" },
+  { "group": "Core", "name": "carp_core", "repo": "carp-dk/carp.sensing-flutter", "path": "carp_core", "description": "The CARP core domain model" },
+  { "group": "Core", "name": "carp_serializable", "repo": "carp-dk/carp.sensing-flutter", "path": "carp_serializable", "description": "Polymorphic JSON serialization" },
+
+  { "group": "Sampling packages", "name": "carp_context_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_context_package", "description": "Location, activity, weather, air quality" },
+  { "group": "Sampling packages", "name": "carp_survey_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_survey_package", "description": "Surveys and cognitive tests" },
+  { "group": "Sampling packages", "name": "carp_health_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_health_package", "description": "Apple Health and Google Health Connect" },
+  { "group": "Sampling packages", "name": "carp_audio_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_audio_package", "description": "Audio and noise" },
+  { "group": "Sampling packages", "name": "carp_connectivity_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_connectivity_package", "description": "Bluetooth, Wi-Fi, connectivity" },
+  { "group": "Sampling packages", "name": "carp_communication_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_communication_package", "description": "Phone calls and SMS" },
+  { "group": "Sampling packages", "name": "carp_apps_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_apps_package", "description": "Installed apps and app usage" },
+
+  { "group": "Wearables", "name": "carp_aware_package", "repo": "carp-dk/carp_aware_package", "path": ".", "description": "Apple Watch" },
+  { "group": "Wearables", "name": "carp_polar_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_polar_package", "description": "Polar heart rate monitors" },
+  { "group": "Wearables", "name": "carp_movesense_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_movesense_package", "description": "Movesense sensors" },
+  { "group": "Wearables", "name": "carp_movisens_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_movisens_package", "description": "Movisens Move & ECG" },
+  { "group": "Wearables", "name": "carp_esense_package", "repo": "carp-dk/carp.sensing-flutter", "path": "packages/carp_esense_package", "description": "eSense earables" },
+
+  { "group": "Backends", "name": "carp_webservices", "repo": "carp-dk/carp.sensing-flutter", "path": "backends/carp_webservices", "description": "Flutter API for CARP Web Services (CAWS)" },
+  { "group": "Backends", "name": "carp_backend", "repo": "carp-dk/carp.sensing-flutter", "path": "backends/carp_backend", "description": "Data manager for uploading to CAWS" },
+  { "group": "Backends", "name": "carp_firebase_backend", "repo": "carp-dk/carp.sensing-flutter", "path": "backends/carp_firebase_backend", "description": "Data manager for uploading to Firebase" },
+
+  { "group": "Plugins and tools", "name": "health", "repo": "carp-dk/carp-health-flutter", "path": ".", "description": "Flutter Health plugin" },
+  { "group": "Plugins and tools", "name": "carp_debug_flutter", "repo": "carp-dk/carp_debug_flutter", "path": ".", "description": "In-app debug toolkit" },
+  { "group": "Plugins and tools", "name": "research_package", "repo": "carp-dk/research.package", "path": ".", "description": "Surveys and informed consent" },
+  { "group": "Plugins and tools", "name": "cognition_package", "repo": "carp-dk/cognition_package", "path": ".", "description": "Cognitive tests" }
+]

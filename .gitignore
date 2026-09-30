@@ -19,3 +19,10 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# generated API reference (scripts/api/generate.mjs)
+.api-src/
+.api-out/
+src/content/docs/api/
+src/api-sidebar.json
+public/api-version.json
