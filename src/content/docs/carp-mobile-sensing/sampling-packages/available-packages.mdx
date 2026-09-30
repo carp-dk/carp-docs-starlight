@@ -1,76 +1,31 @@
 ---
-title: Measure Types
-description: Overview of available measure types in CAMS
+title: "Available packages"
+description: "Measure types, platforms and the package that provides them"
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-This page contains an overview of all measure types available in sampling packages; both packages that are are built-in to the [carp_mobile_sensing](https://pub.dev/packages/carp_mobile_sensing) framework, as well as the external ones.
-This list is constantly evolving as we release more and more support.
+Add a package to your `pubspec.yaml`, register it, then use its measure types in a `Measure`.
 
-## Measure type format
+## Packages
 
-The `dataType` property of a [`Measure`](https://pub.dev/documentation/carp_core/latest/common/Measure-class.html) specify what type of data to collect.
-The string version is typically a `namespace` + `name`. CAMS-native measure types have the namespace `dk.cachet.carp` and the name is the measure `type`:
+| Package | Adds | Source |
+| --- | --- | --- |
+| `carp_mobile_sensing` | Phone sensors and device information (built in: `sensors` and `device`) | [carp_mobile_sensing](https://github.com/carp-dk/carp.sensing-flutter/tree/main/carp_mobile_sensing) |
+| `carp_context_package` | Location, activity, weather, air quality, geofence, mobility | [carp_context_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_context_package) |
+| `carp_survey_package` | Surveys and cognitive tests | [carp_survey_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_survey_package) |
+| `carp_health_package` | Health data from Apple Health and Health Connect | [carp_health_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_health_package) |
+| `carp_audio_package` | Audio and noise | [carp_audio_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_audio_package) |
+| `carp_connectivity_package` | Bluetooth, Wi-Fi and connectivity | [carp_connectivity_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_connectivity_package) |
+| `carp_communication_package` | Phone calls, SMS and calendar | [carp_communication_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_communication_package) |
+| `carp_apps_package` | Installed and used apps | [carp_apps_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_apps_package) |
+| `carp_polar_package` | Polar heart rate monitors | [carp_polar_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_polar_package) |
+| `carp_movesense_package` | Movesense sensors | [carp_movesense_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_movesense_package) |
+| `carp_movisens_package` | Movisens sensors | [carp_movisens_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_movisens_package) |
+| `carp_esense_package` | eSense earables | [carp_esense_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_esense_package) |
+| `carp_aware_package` | Apple Watch data | [carp_aware_package](https://github.com/carp-dk/carp.sensing-flutter/tree/main/packages/carp_aware_package) |
 
-```
-dk.cachet.carp.<type>
-```
-
-<Aside>
-The `cachet` part of the namespace is a legacy. The original vision and design of CARP was done as part of the [Copenhagen Center for Health Technology](https://www.cachet.dk/) (CACHET) and the namespace `dk.cachet.carp` was adopted back then. Now, CACHET has closed and the maintenance of CARP is now done by the [Section of Digital Health](https://www.healthtech.dtu.dk/research/research-sections/section-digital-health) at the Department of Health Technology at the [Technical University of Denmark](https://www.dtu.dk/english/).
-
-For now we keep the old namespace for backward compatibility. This will, however, be changed to `carp.dk` in the future.
-</Aside>
-
-The different types is specified in the tables below.
-
-## Event-based vs. one-time measures
-
-Most measures are **event-based** (EB), i.e., once triggered and started, they continuously sample data from their sensor until explicitly stopped. For example, collecting a step event every time a step is detected on the phone.
-However, some measures are **one-time** (OT), i.e., sampling one piece of data when triggered. For example, collecting weather data from the Open Weather API.
-
-It is important to know the type (EB vs. OT) of a measure since an event-based measure can be started and run until stopped, whereas a one-time measure needs to be triggered to sample data. This can, for example, be done periodically using appropriate triggers, like the [`PeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicTrigger-class.html).  
-
-The difference when specifying the study protocol is illustrated below.
-The first task added to the protocol contains a one-time measure (device info), which is triggered only once.
-The second task contains a set of event-based measures that are triggered to start immediately and keep sampling data based on events.
-The third task collects weather (one-time measure) periodically every 5 minutes.
-
-```dart
-  // Collect device info only once, when this study is deployed.
-  protocol.addTaskControl(
-    OneTimeTrigger(),
-    BackgroundTask(
-        measures: [Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION)]),
-    phone,
-  );
-
-  // Immediately start collecting step count, ambient light, screen activity, and
-  // battery level events. All event-based measures.
-  protocol.addTaskControl(
-    ImmediateTrigger(),
-    BackgroundTask(measures: [
-      Measure(type: SensorSamplingPackage.STEP_EVENT),
-      Measure(type: SensorSamplingPackage.AMBIENT_LIGHT),
-      Measure(type: DeviceSamplingPackage.SCREEN_EVENT),
-      Measure(type: DeviceSamplingPackage.BATTERY_STATE),
-    ]),
-    phone,
-  );
-
-  // Add a background task that collects weather every 5 minutes.
-  protocol.addTaskControl(
-      PeriodicTrigger(period: Duration(minutes: 5)),
-      BackgroundTask(
-          measures: [Measure(type: ContextSamplingPackage.WEATHER)]),
-      weatherService);
-```
-
-Each [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) provides a list of what types of measures it supports using the [`dataTypes`](https://pub.dartlang.org/documentation/carp_mobile_sensing/latest/domain/SamplingPackage/dataTypes.html) property.
-Each sampling package also comes with a [default sampling schema](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage/samplingSchemes.html) for each of its measure types.
-
-## Available measure types
+## Measure types
 
 CAMS comes with a large set of predefined measure types, each available in different sampling packages. Some measures are [part of CAMS](#built-in-sampling-packages), others are available in [separate sampling packages](#external-sampling-packages), and some are part of [device-specific sampling packages](#wearable-device-sampling-packages).
 

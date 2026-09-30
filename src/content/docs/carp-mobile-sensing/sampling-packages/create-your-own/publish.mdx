@@ -1,0 +1,44 @@
+---
+title: "5. Publish and use it"
+description: "Bundle the files, register the package, release it"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Bundle, register and release
+
+Finally, all files should be bundled together in a Dart library. For example, the `carp_esense_package` package looks like this;
+
+````dart
+import 'dart:async';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:esense_flutter/esense.dart';
+
+import 'package:carp_serializable/carp_serializable.dart';
+import 'package:carp_core/carp_core.dart';
+import 'package:carp_mobile_sensing/carp_mobile_sensing.dart';
+
+part 'esense_package.dart';
+part 'esense_domain.dart';
+part 'esense_probes.dart';
+part 'esense_device_manager.dart';
+part 'esense.g.dart';
+````
+
+To use a sampling package, import it into your app together with the
+[`carp_mobile_sensing`](https://pub.dev/packages/carp_mobile_sensing) package:
+
+`````dart
+import 'package:carp_core/carp_core.dart';
+import 'package:carp_mobile_sensing/carp_mobile_sensing.dart';
+import 'package:carp_esense_package/esense.dart';
+`````
+
+Before creating a study and running it, register this package in the [`SamplingPackageRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SamplingPackageRegistry-class.html).
+
+````dart
+SamplingPackageRegistry().register(ESenseSamplingPackage());
+````
+
+A package can be released as a Dart package on [Pub](https://pub.dev).
+We already provide a [list of different sampling packages](https://github.com/carp-dk/carp.sensing-flutter?tab=readme-ov-file#software-components) - both using the onboard phone sensors as well as external wearable devices and online services.

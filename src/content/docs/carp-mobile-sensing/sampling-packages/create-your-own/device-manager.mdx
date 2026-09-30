@@ -1,0 +1,242 @@
+---
+title: "3. Add a device manager (optional)"
+description: "Only needed for external devices and online services"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+**Skip this step** if your package reads only the phone: `SmartphoneSamplingPackage` uses the default `SmartphoneDeviceManager`. Write one when the data comes from a Bluetooth device or an online service. See [Devices and permissions](/carp-mobile-sensing/runtime/devices-and-permissions) for the base classes.
+
+## The device manager class
+
+If a sampling package handles (i.e., collects data from) an external device or service, then it should be able to specify what type of device it supports and provide corresponding [`DeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceManager-class.html) and [`DeviceConfiguration`](https://pub.dev/documentation/carp_core/latest/common/DeviceConfiguration-class.html) classes.
+For example, in the eSense sampling package, the [`ESenseSamplingPackage`](https://pub.dev/documentation/carp_esense_package/latest/esense/ESenseSamplingPackage-class.html) implements the following two methods:
+
+```dart
+class ESenseSamplingPackage implements SamplingPackage {
+  final DeviceManager _deviceManager =
+      ESenseDeviceManager(ESenseDevice.DEVICE_TYPE);
+
+  // other parts of the package omitted
+
+  @override
+  List<Permission> get permissions => [];
+
+  @override
+  String get deviceType => ESenseDevice.DEVICE_TYPE;
+
+  @override
+  DeviceManager get deviceManager => _deviceManager;
+}
+```
+
+The [`ESenseDevice`](https://pub.dev/documentation/carp_esense_package/latest/esense/ESenseDevice-class.html) device configuration describes how an eSense device is to be configured:
+
+```dart
+/// A [DeviceConfiguration] for an eSense device used in a [StudyProtocol].
+@JsonSerializable(fieldRename: FieldRename.none, includeIfNull: false)
+class ESenseDevice extends BLEDevice<BLEDeviceRegistration> {
+  /// The type of an eSense device.
+  static const String DEVICE_TYPE =
+      '${CamsDevice.CAMS_DEVICE_NAMESPACE}.ESenseDevice';
+
+  /// The default role name for an eSense device.
+  static const String DEFAULT_ROLE_NAME = 'eSense';
+
+  /// The sampling rate in Hz of getting sensor data from the device.
+  int samplingRate;
+
+  ESenseDevice({
+    super.roleName = ESenseDevice.DEFAULT_ROLE_NAME,
+    super.isOptional = true,
+    this.samplingRate = 10,
+  });
+
+  @override
+  Function get fromJsonFunction => _$ESenseDeviceFromJson;
+  factory ESenseDevice.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson(json) as ESenseDevice;
+  @override
+  Map<String, dynamic> toJson() => _$ESenseDeviceToJson(this);
+}
+```
+
+Note that since a device configuration can be part of a study protocol, it needs to support [JSON serialization](/carp-mobile-sensing/domain/json-serialization).
+
+The device manager should implement the [`DeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceManager-class.html) interface.
+CAMS has a set of predefined device managers which can be extended, including the `SmartphoneDeviceManager`, `ServiceManager`, `HardwareDeviceManager`, and `BLEDeviceManager`.
+Since the eSense sensor is a BLE device, the [`ESenseDeviceManager`](https://pub.dev/documentation/carp_esense_package/latest/esense/ESenseDeviceManager-class.html) extends the [`BLEDeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BLEDeviceManager-class.html) class.
+
+```dart
+/// A [DeviceManager] for the eSense device.
+///
+/// Note that eSense use the [bleName] (and not the BLE address) for connecting to it.
+/// Typically of the form `eSense-xxxx`.
+class ESenseDeviceManager
+    extends BLEDeviceManager<ESenseDevice, BLEDeviceRegistration> {
+  Timer? _batteryTimer;
+  StreamSubscription<ESenseEvent>? _batterySubscription;
+  double? _voltageLevel;
+  final StreamController<int> _batteryEventController =
+      StreamController.broadcast();
+
+  ESenseManager? _manager;
+
+  /// The eSense device handler.
+  /// Only available after [bleName] has been set.
+  ESenseManager? get manager =>
+      bleName != null ? _manager ??= ESenseManager(bleName!) : _manager = null;
+
+  @override
+  String? get displayName => bleName;
+
+  /// An estimate of the battery level based on the voltage level.
+  @override
+  int? get batteryLevel => (_voltageLevel != null)
+      ? ((1.19 * _voltageLevel! - 3.91) * 100).toInt()
+      : null;
+
+  @override
+  Stream<int> get batteryEvents => _batteryEventController.stream;
+
+  ESenseDeviceManager(super.type, {super.configuration});
+
+  @override
+  bool get canConnect => bleName != null;
+
+  @override
+  BLEDeviceRegistration createRegistration() => BLEDeviceRegistration(
+    deviceDisplayName: bleName,
+    isConnected: isConnected,
+    batteryChargingState: batteryLevel != null
+        ? HardwareDeviceRegistration.parseBatteryLevel(batteryLevel!)
+        : BatteryChargingState.unknown,
+    bleAddress: bleName ?? 'Unknown eSense Device',
+    bleName: bleName,
+  );
+
+  @override
+  Future<DeviceStatus> onConnect() async {
+    try {
+      // listen for connection events
+      manager?.connectionEvents.listen((event) async {
+        switch (event.type) {
+          case ConnectionType.connected:
+            status = DeviceStatus.connected;
+
+            await manager?.setSamplingRate(configuration?.samplingRate ?? 10);
+
+            // when connected, listen for battery events
+            _batterySubscription = manager!.eSenseEvents.listen((event) {
+              if (event is BatteryRead) {
+                _voltageLevel = event.voltage;
+                if (batteryLevel != null) {
+                  _batteryEventController.add(batteryLevel!);
+                }
+              }
+            });
+
+            // set up a timer that asks for the voltage level
+            _batteryTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+              if (status == DeviceStatus.connected) {
+                manager?.getBatteryVoltage();
+              }
+            });
+            break;
+          case ConnectionType.unknown:
+            status = DeviceStatus.unknown;
+            break;
+          case ConnectionType.device_found:
+            status = DeviceStatus.connecting;
+            break;
+          case ConnectionType.device_not_found:
+          case ConnectionType.disconnected:
+            status = DeviceStatus.disconnected;
+            _voltageLevel = null;
+            _batteryTimer?.cancel();
+            _batterySubscription?.cancel();
+            break;
+        }
+      });
+
+      // try to connect to the manager with the [bleName]
+      manager?.connect();
+    } catch (error) {
+      warning(
+        '$runtimeType - Error connecting to eSense device: $bleName - $error',
+      );
+      return DeviceStatus.disconnected;
+    }
+
+    return DeviceStatus.connecting;
+  }
+
+  @override
+  Future<bool> onDisconnect() async => await manager?.disconnect() ?? false;
+}
+```
+
+Once the eSense device manager is in place, the eSense probes (button and IMU sensor) can be implemented as stream probes.
+
+<Tabs>
+<TabItem label="ESenseButtonProbe">
+
+```dart
+/// Collects eSense button pressed events. It generates an [ESenseButton]
+/// every time the button is pressed or released.
+class ESenseButtonProbe extends StreamProbe {
+  @override
+  ESenseDeviceManager get deviceManager =>
+      super.deviceManager as ESenseDeviceManager;
+
+  @override
+  Stream<Measurement>? get stream => (deviceManager.isConnected)
+      ? deviceManager.manager!.eSenseEvents
+            .where((event) => event.runtimeType == ButtonEventChanged)
+            .map(
+              (event) => Measurement.fromData(
+                ESenseButton(
+                  deviceName: deviceManager.manager!.deviceName,
+                  pressed: (event as ButtonEventChanged).pressed,
+                ),
+              ),
+            )
+            .asBroadcastStream()
+      : null;
+}
+```
+
+</TabItem>
+<TabItem label="ESenseSensorProbe">
+
+```dart
+/// Collects eSense sensor events.
+/// It generates an [ESenseSensor] for each sensor event.
+class ESenseSensorProbe extends StreamProbe {
+  Stream<Measurement>? _stream;
+
+  @override
+  ESenseDeviceManager get deviceManager =>
+      super.deviceManager as ESenseDeviceManager;
+
+  @override
+  Stream<Measurement>? get stream => _stream ??= (deviceManager.isConnected)
+      ? deviceManager.manager!.sensorEvents
+            .map(
+              (event) => Measurement.fromData(
+                ESenseSensor.fromSensorEvent(
+                  deviceName: deviceManager.manager!.deviceName,
+                  event: event,
+                ),
+                event.timestamp.microsecondsSinceEpoch,
+              ),
+            )
+            .asBroadcastStream()
+      : null;
+}
+```
+
+</TabItem>
+</Tabs>
+
+Both the device manager and the probes make use of the [`ESenseManager`](https://pub.dev/documentation/esense_flutter/latest/esense/ESenseManager-class.html) from the [`esense_flutter`](https://pub.dev/packages/esense_flutter) Flutter Plugin.

@@ -1,0 +1,49 @@
+---
+title: "Devices and permissions"
+description: "Device managers and permission requests"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Every device in the protocol has a [`DeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceManager-class.html) at runtime. The [`DeviceController`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceController-class.html) singleton owns them all, including the phone itself, and is what [`SamplingPackageRegistry`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SamplingPackageRegistry-class.html) registers device managers with.
+
+A device manager reports a `DeviceStatus`: `unknown`, `configured`, `paired`, `connecting`, `connected`, `reconnected`, `disconnecting`, `disconnected`. It also checks (`hasPermissions`) and requests (`requestPermissions`) the permissions its device needs.
+
+| Base class | For |
+| --- | --- |
+| [`SmartphoneDeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SmartphoneDeviceManager-class.html) | The phone. Default for packages that use only onboard sensors |
+| [`HardwareDeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/HardwareDeviceManager-class.html) | External hardware with a battery |
+| [`BLEDeviceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/BLEDeviceManager-class.html) | Bluetooth LE devices |
+| [`ServiceManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/ServiceManager-class.html) | Online and on-board services, like weather or location |
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`runtime/device_manager/device_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/device_manager/device_manager.dart) | `DeviceManager` and `DeviceStatus` |
+| [`runtime/device_manager/device_managers.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/device_manager/device_managers.dart) | The base classes above |
+| [`runtime/device_manager/device_controller.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/device_manager/device_controller.dart) | `DeviceController` |
+| [`runtime/permissions.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/permissions.dart) | `PermissionRequester`, `requestPermissionsInOrder` |
+
+## Permissions
+
+CAMS asks for permissions when a probe or device needs them, through a `PermissionRequester`. The default, `requestPermissionsInOrder`, shows the system dialogs **one at a time**. Android silently denies a request made while another dialog is up, and some permissions (e.g. background location) only work after another one is granted.
+
+To show your own rationale before each dialog, pass your own requester:
+
+```dart
+await SmartPhoneClientManager().configure(
+  permissionRequester: (permissions) async {
+    // show your explanation, then ask
+    await requestPermissionsInOrder(permissions);
+  },
+);
+```
+
+A requester runs inside the permission queue. Call `permission_handler` (or `requestPermissionsInOrder`) directly, never `SmartPhoneClientManager.requestPermissions`, which would wait on itself.
+
+Platform setup for the permissions is on [Run in production](/carp-mobile-sensing/run-in-production#permissions).
+
+## Add your own device manager
+
+See [Add a device manager](/carp-mobile-sensing/sampling-packages/create-your-own/device-manager).

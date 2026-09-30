@@ -1,0 +1,39 @@
+---
+title: "1. Define the data"
+description: "The measurement payload of your package"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Start with what you measure. Each measure type has a `Data` subclass that is serialized to JSON, so it needs [JSON serialization](/carp-mobile-sensing/domain/json-serialization).
+
+## The data class
+
+Next, you should define the package-specific [`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html) that the package collects.
+Here is the example of the collected `FreeMemory` data item;
+
+````dart
+/// Holds information about free memory on the phone.
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class FreeMemory extends Data {
+  static const dataType = DeviceSamplingPackage.FREE_MEMORY;
+
+  /// Amount of free physical memory in bytes.
+  int? freePhysicalMemory;
+
+  /// Amount of free virtual memory in bytes.
+  int? freeVirtualMemory;
+
+  FreeMemory([this.freePhysicalMemory, this.freeVirtualMemory]) : super();
+
+  @override
+  Function get fromJsonFunction => _$FreeMemoryFromJson;
+  factory FreeMemory.fromJson(Map<String, dynamic> json) => FromJsonFactory().fromJson(json) as FreeMemory;
+  @override
+  Map<String, dynamic> toJson() => _$FreeMemoryToJson(this);
+}
+````
+
+<Aside type="tip">
+A small note on **Privacy**; it is possible to add privacy protection of collected data to the package. See [Creating Data Privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy#creating-data-privacy) for how to do this.
+</Aside>

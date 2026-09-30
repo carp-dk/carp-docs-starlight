@@ -1,0 +1,28 @@
+---
+title: "Infrastructure"
+description: "What lives in lib/infrastructure: the services CAMS uses to store, notify and run in the background"
+sidebar:
+  label: Overview
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`lib/infrastructure/` holds the concrete implementations of the interfaces declared in `lib/domain/services/`, plus the built-in sampling packages. Replace any of them to change how CAMS stores, deploys or notifies.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`infrastructure/data_managers/`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/data_managers/) | Console, file and SQLite data managers |
+| [`infrastructure/services/`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/) | Deployment, persistence, notifications, background, logging |
+| [`infrastructure/settings.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/settings.dart) | `Settings`: paths, user id, debug level |
+| [`infrastructure/sampling_packages/`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/sampling_packages/) | The built-in sampling packages, see [Sampling packages](/carp-mobile-sensing/sampling-packages/how-they-work) |
+
+## Pages
+
+<CardGrid>
+  <LinkCard title="Data managers" href="/carp-mobile-sensing/infrastructure/data-managers" description="Where measurements are stored or uploaded" />
+  <LinkCard title="Deployment and persistence" href="/carp-mobile-sensing/infrastructure/deployment-and-persistence" description="How studies and tasks survive restarts" />
+  <LinkCard title="Notifications and background" href="/carp-mobile-sensing/infrastructure/notifications-and-background" description="Local notifications and Android background execution" />
+  <LinkCard title="Settings and logging" href="/carp-mobile-sensing/infrastructure/settings-and-logging" description="Paths, user id and debug output" />
+</CardGrid>

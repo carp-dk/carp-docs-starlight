@@ -1,0 +1,175 @@
+---
+title: "Measures and data"
+description: "Measure types, sampling configurations and the measurements they produce"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/data.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data.dart) | `FileData`, `CompletedAppTask` |
+| [`domain/core/data_types.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data_types.dart) | `CamsDataTypes`: the CAMS data type registry |
+| [`domain/core/sampling_configurations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/sampling_configurations.dart) | How often and how long a measure samples |
+
+## Measures
+
+A [`Measure`](https://pub.dev/documentation/carp_core/latest/common/Measure-class.html) defines **what** to measure. A measure specify the **type** of data to collect, which on runtime maps to a specific probe that can collect this type of data.
+
+Since CAMS follows a reactive programming model, all sampled data is collected in streams by listening to the underlying sensors. This is configured using the [`Measure`](https://pub.dev/documentation/carp_core/latest/common/Measure-class.html) class.
+However, some probes need to ‘poll’ data, and such probes need to be configured with a sampling frequency.
+For example, the [`MemoryProbe`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/MemoryProbe-class.html) needs to be configured with a sampling frequency. For this purpose, the [`IntervalSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) is used in the sampling schema (see below).
+
+This low-level configuration is, however, often irrelevant to most of the users of CAMS and can therefore be handled via a so-called [`SamplingConfiguration`](https://pub.dev/documentation/carp_core/latest/common/SamplingConfiguration-class.html). In the code listing below, the common sampling schema is used to get a set of measures with the most ‘common’ configuration. Sampling schemes are further described below.
+
+<Aside>
+A list of available measure types in CAMS can be found in [Measure Types](/carp-mobile-sensing/sampling-packages/available-packages).
+</Aside>
+
+## Measure type format
+
+The `dataType` property of a [`Measure`](https://pub.dev/documentation/carp_core/latest/common/Measure-class.html) specify what type of data to collect.
+The string version is typically a `namespace` + `name`. CAMS-native measure types have the namespace `dk.cachet.carp` and the name is the measure `type`:
+
+```
+dk.cachet.carp.<type>
+```
+
+<Aside>
+The `cachet` part of the namespace is a legacy. The original vision and design of CARP was done as part of the [Copenhagen Center for Health Technology](https://www.cachet.dk/) (CACHET) and the namespace `dk.cachet.carp` was adopted back then. Now, CACHET has closed and the maintenance of CARP is now done by the [Section of Digital Health](https://www.healthtech.dtu.dk/research/research-sections/section-digital-health) at the Department of Health Technology at the [Technical University of Denmark](https://www.dtu.dk/english/).
+
+For now we keep the old namespace for backward compatibility. This will, however, be changed to `carp.dk` in the future.
+</Aside>
+
+The different types is specified in the tables below.
+
+## Event-based vs. one-time measures
+
+Most measures are **event-based** (EB), i.e., once triggered and started, they continuously sample data from their sensor until explicitly stopped. For example, collecting a step event every time a step is detected on the phone.
+However, some measures are **one-time** (OT), i.e., sampling one piece of data when triggered. For example, collecting weather data from the Open Weather API.
+
+It is important to know the type (EB vs. OT) of a measure since an event-based measure can be started and run until stopped, whereas a one-time measure needs to be triggered to sample data. This can, for example, be done periodically using appropriate triggers, like the [`PeriodicTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicTrigger-class.html).  
+
+The difference when specifying the study protocol is illustrated below.
+The first task added to the protocol contains a one-time measure (device info), which is triggered only once.
+The second task contains a set of event-based measures that are triggered to start immediately and keep sampling data based on events.
+The third task collects weather (one-time measure) periodically every 5 minutes.
+
+```dart
+  // Collect device info only once, when this study is deployed.
+  protocol.addTaskControl(
+    OneTimeTrigger(),
+    BackgroundTask(
+        measures: [Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION)]),
+    phone,
+  );
+
+  // Immediately start collecting step count, ambient light, screen activity, and
+  // battery level events. All event-based measures.
+  protocol.addTaskControl(
+    ImmediateTrigger(),
+    BackgroundTask(measures: [
+      Measure(type: SensorSamplingPackage.STEP_EVENT),
+      Measure(type: SensorSamplingPackage.AMBIENT_LIGHT),
+      Measure(type: DeviceSamplingPackage.SCREEN_EVENT),
+      Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+    ]),
+    phone,
+  );
+
+  // Add a background task that collects weather every 5 minutes.
+  protocol.addTaskControl(
+      PeriodicTrigger(period: Duration(minutes: 5)),
+      BackgroundTask(
+          measures: [Measure(type: ContextSamplingPackage.WEATHER)]),
+      weatherService);
+```
+
+Each [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) provides a list of what types of measures it supports using the [`dataTypes`](https://pub.dartlang.org/documentation/carp_mobile_sensing/latest/domain/SamplingPackage/dataTypes.html) property.
+Each sampling package also comes with a [default sampling schema](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage/samplingSchemes.html) for each of its measure types.
+
+## Sampling configuration and schemas
+
+CAMS comes with a set of default sampling configurations for all measures. These configurations are collected in [DataTypeSamplingScheme](https://pub.dev/documentation/carp_core/latest/common/DataTypeSamplingScheme-class.html) schemas for each sampling package.
+For example, the [`SensorSamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage-class.html) provides a map of default [samplingSchemes](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage/samplingSchemes.html) for the measures included in this package.
+
+However, if you want to change these default configurations, they can be overridden.
+For example, the default configuration of the light measure is 10 seconds sampling every 5 minutes. This configuration can be "overridden" using the `overrideSamplingConfiguration` property of a measure:
+
+```dart
+  // Override the sampling configuration of the light measure in the protocol.
+  protocol.addTaskControl(
+    ImmediateTrigger(),
+    BackgroundTask(
+      measures: [
+        Measure(type: SensorSamplingPackage.AMBIENT_LIGHT)
+          ..overrideSamplingConfiguration = PeriodicSamplingConfiguration(
+            interval: const Duration(minutes: 10),
+            duration: const Duration(seconds: 20),
+          ),
+      ],
+    ),
+    phone,
+  );
+```
+
+## Measurements and data
+
+CAMS models data according to the [data](https://github.com/cph-cachet/carp.core-kotlin/blob/develop/docs/carp-data.md) sub-system of the CARP Core domain model. Data collected during sampling is modeled as a [`Measurement`](https://pub.dev/documentation/carp_core/latest/data/Measurement-class.html), which holds a [`Data`](https://pub.dev/documentation/carp_core/latest/common/Data-class.html) object of a specific [`DataType`](https://pub.dev/documentation/carp_core/latest/common/DataType-class.html).  
+
+In CAMS, all data objects are of type `Data`. For example, the [`BatteryState`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/BatteryState-class.html) holds the state of the phone's battery, like battery level and charging status.
+A data object is either measured at a point in time or a time span.
+
+All measurement and data objects can be serialized to/from JSON:
+
+<Tabs>
+
+<TabItem label="Point-in-time measurement">
+
+The `sensorStartTime` property is the timestamp of the measurement (in microseconds) and the `__type` property holds the data type.
+
+```json
+{
+  "sensorStartTime": 1700082464783244,
+  "data": {
+   "__type": "dk.cachet.carp.batterystate",
+   "batteryLevel": 92,
+   "batteryStatus": "charging"
+  }
+}
+```
+
+</TabItem>
+
+<TabItem label="Time-span measurement">
+
+Since ambient light is measured over a time period, both `sensorStartTime` and `sensorEndTime` is specified.
+
+```json
+ {
+  "sensorStartTime": 1700082626178562,
+  "sensorEndTime": 1700082636184268,
+  "data": {
+   "__type": "dk.cachet.carp.ambientlight",
+   "meanLux": 20.76923076923077,
+   "stdLux": 0.6965680875490359,
+   "minLux": 20,
+   "maxLux": 22
+ }
+````
+
+</TabItem>
+</Tabs>
+
+<Aside>
+
+In CARP in general, we recommend using **microseconds** (over milliseconds) since epoch. This provides a greater precision, especially in high-frequency sampling.
+
+Sensor timestamps (start and end time) are provided by the sensor, if available. Depending on the unit of the sensor timestamp, this timestamp may be translated to microseconds by the phone before being stored in a measurement. If the sensor does not provide a timestamp, then the phone is used for time-stamping by using the [Measurement.fromData](https://pub.dev/documentation/carp_core/latest/data/Measurement/Measurement.fromData.html) method.
+
+Sometimes, the `Data` object may contain time information, which can be modeled using the Dart `DateTime` format. See for example the `dateFrom` properties in the [`HealthData`](https://pub.dev/documentation/carp_health_package/latest/health_package/HealthData-class.html) in the health package. In these cases, timestamps in Zulu (UTC) format are used, such as `2023-11-15T22:00:25.864650Z`.
+
+</Aside>
+
+The list of measure types you can use is on [Available packages](/carp-mobile-sensing/sampling-packages/available-packages).

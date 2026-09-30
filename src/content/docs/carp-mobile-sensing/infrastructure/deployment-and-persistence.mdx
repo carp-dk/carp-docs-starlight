@@ -1,0 +1,21 @@
+---
+title: "Deployment and persistence"
+description: "How studies and tasks survive restarts"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Three services make CAMS run offline and keep its state:
+
+- [`SmartphoneDeploymentService`](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/SmartphoneDeploymentService-class.html) is an in-memory `DeploymentService` that deploys a protocol on this phone. Use a remote one (e.g. CAWS) to deploy from a server.
+- `PersistenceService` keeps studies (table `studies`) and the user task queue (table `task_queue`) in SQLite, so they are restored after an app restart.
+- [`FileStudyProtocolManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/infrastructure/FileStudyProtocolManager-class.html) reads and writes protocol JSON files, implementing the `StudyProtocolManager` interface.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`infrastructure/services/deployment_service.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/deployment_service.dart) | `SmartphoneDeploymentService` |
+| [`infrastructure/services/persistence_service.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/persistence_service.dart) | `PersistenceService` |
+| [`infrastructure/services/file_protocol_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/file_protocol_manager.dart) | `FileStudyProtocolManager`: `~/carp/study/study-<id>.json` |
+| [`infrastructure/services/device_info_service.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/device_info_service.dart) | `DeviceInfoService`: static hardware information |

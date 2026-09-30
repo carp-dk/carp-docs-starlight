@@ -48,12 +48,16 @@ Choose from 14 predefined cognitive assessment tools like trail-making, reaction
 
 ## Documentation map
 
+![The four parts of carp_mobile_sensing](/carp-mobile-sensing/images/cams-four-parts.png)
+
 <CardGrid>
-  <LinkCard title="Install and Configure" href="/carp-mobile-sensing/install-and-configure" description="Set up the package and platform configuration on both Android and iOS." />
-  <LinkCard title="Software Architecture" href="/carp-mobile-sensing/software-architecture" description="Runtime architecture with client manager, service, and sampling layers." />
-  <LinkCard title="Domain Model" href="/carp-mobile-sensing/domain-model" description="Study protocols, triggers, tasks, measures, devices, and measurements." />
-  <LinkCard title="Using CAMS" href="/carp-mobile-sensing/using-carp-mobile-sensing" description="End-to-end flow from protocol definition to runtime data streams." />
-  <LinkCard title="AppTask Model" href="/carp-mobile-sensing/app-task-model" description="User-facing tasks, queueing, notifications, and execution lifecycle." />
+  <LinkCard title="Install and configure" href="/carp-mobile-sensing/install-and-configure" description="Add the package and set up Android and iOS" />
+  <LinkCard title="Architecture" href="/carp-mobile-sensing/architecture" description="How the four parts fit together" />
+  <LinkCard title="Domain" href="/carp-mobile-sensing/domain/" description="Study protocol, triggers, tasks, measures, devices" />
+  <LinkCard title="Runtime" href="/carp-mobile-sensing/runtime/" description="Client manager, executors, app tasks, permissions" />
+  <LinkCard title="Infrastructure" href="/carp-mobile-sensing/infrastructure/" description="Data managers, persistence, notifications" />
+  <LinkCard title="Sampling packages" href="/carp-mobile-sensing/sampling-packages/" description="Available packages, and how to create your own" />
+  <LinkCard title="Run in production" href="/carp-mobile-sensing/run-in-production" description="Background sensing, iOS setup, permissions, build issues" />
 </CardGrid>
 
 ## How it works
@@ -178,14 +182,5 @@ CAMS support **persistent sampling**. This implies that once a study is defined 
 
 Hence, when using CAMS in an app you do not need to consider restoring studies and restarting data sampling when the app is closed and restarted, even when killed by the OS.
 
-Read more on [background sensing](/carp-mobile-sensing/best-practice#background-sensing) in the Best Practice page.
+Read more on [background sensing](/carp-mobile-sensing/run-in-production#background-sensing) on the Run in production page.
 </Aside>
-
-## Continue reading
-
-<CardGrid>
-  <LinkCard title="Extending CAMS" href="/carp-mobile-sensing/extending-carp-mobile-sensing" description="Add custom triggers, probes, data managers, and transformer schemas." />
-  <LinkCard title="Best Practice" href="/carp-mobile-sensing/best-practice" description="Android/iOS setup recommendations, permissions, and troubleshooting." />
-  <LinkCard title="Measure Types" href="/carp-mobile-sensing/measure-types" description="Supported measure types across built-in and external sampling packages." />
-  <LinkCard title="Data Managers" href="/carp-mobile-sensing/data-managers" description="File, SQLite, Firebase, and CAWS storage/upload options." />
-</CardGrid>

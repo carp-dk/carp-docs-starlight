@@ -1,0 +1,74 @@
+---
+title: "Devices"
+description: "The phone, BLE devices and online services"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/device_configurations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/device_configurations.dart) | What a device *is* in a protocol: `Smartphone`, `BLEDevice`, `BLEHeartRateDevice`, `ServiceConfiguration` |
+| [`domain/core/device_registrations.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/device_registrations.dart) | What a device *is* at runtime: `SmartphoneRegistration`, `BLEDeviceRegistration`, `ServiceRegistration` |
+| [`runtime/device_manager/`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/device_manager/) | The manager that connects to the device, see [Devices and permissions](/carp-mobile-sensing/runtime/devices-and-permissions) |
+
+A **device configuration** goes in the protocol and is the same for every participant. A **device registration** is created on the phone and holds what is specific to one device, e.g. a Bluetooth address or the phone model and battery.
+
+## Devices
+
+Devices need to be configured in the study protocol.
+In the CAMS domain model, there a two types of devices:
+
+* **Primary** devices, which aggregates, synchronizes and optionally uploads incoming data received from one or more connected devices (potentially just itself). The smartphone in CAMS is typically a master device.
+* **Connected** devices, which are any devices connected to a primary device, such as a wearable heart rate monitor.
+
+CAMS and its sampling packages come with pre-defined device descriptors, like the [`Smartphone`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/Smartphone-class.html) primary device descriptor
+or the [`PolarDevice`](https://pub.dev/documentation/carp_polar_package/latest/carp_polar_package/PolarDevice-class.html) device descriptor in the [Polar sampling package](https://pub.dev/packages/carp_polar_package).
+
+A study protocol using a Polar device would be configured like this:
+
+```dart
+// Create a study protocol
+StudyProtocol protocol = StudyProtocol(...);
+
+// Define which devices are used for data collection - both phone and polar devices
+var phone = Smartphone();
+var polar = PolarDevice(roleName: 'hr-sensor');
+
+// Add both devices
+protocol
+  ..addPrimaryDevice(phone)
+  ..addConnectedDevice(polar, phone);
+
+// Add a background task that immediately starts collecting step counts,
+// ambient light, screen activity, and battery level from the phone.
+protocol.addTaskControl(
+  ImmediateTrigger(),
+  BackgroundTask()
+    ..addMeasure(Measure(type: SensorSamplingPackage.STEP_EVENT))
+    ..addMeasure(Measure(type: SensorSamplingPackage.AMBIENT_LIGHT))
+    ..addMeasure(Measure(type: DeviceSamplingPackage.SCREEN_EVENT))
+    ..addMeasure(Measure(type: DeviceSamplingPackage.BATTERY_STATE)),
+  phone,
+);
+
+// Add a background task that immediately starts collecting HR and ECG data
+// from the Polar device.
+protocol.addTaskControl(
+  ImmediateTrigger(),
+  BackgroundTask(
+    measures: [
+      Measure(type: PolarSamplingPackage.HR),
+      Measure(type: PolarSamplingPackage.ECG),
+    ],
+  ),
+  polar,
+);  
+```
+
+Note that as a wearable device, the Polar device is a "connected device", i.e., connected to the "master device" which is the phone.
+
+<Aside>
+Connected devices needs to connect to the phone (e.g., using BLE) during runtime before data can be collected from them. This is handled by the [DeviceController](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/DeviceController-class.html). See [Handling Devices]().
+</Aside>

@@ -3,47 +3,33 @@ title: CARP Architecture
 description: How the CARP components fit together, from study protocol to data upload.
 ---
 
-CARP is split into a platform-independent **domain model** (`carp_core`), a **client
-framework** that runs studies on the phone (CARP Mobile Sensing, CAMS), pluggable
-**sampling packages**, and **backends** that deploy studies and store data
-(CARP Web Services, CAWS).
+A CARP study goes through three steps: **describe** it, **run** it on a phone, and **collect** the data.
 
-## Components
+| Step | Component | Where |
+| --- | --- | --- |
+| Describe the study | Study protocol, from the platform-independent domain model | [`carp_core`](https://pub.dev/packages/carp_core) |
+| Run it on a phone | CARP Mobile Sensing (CAMS) | [`carp_mobile_sensing`](/carp-mobile-sensing/) |
+| Read sensors and devices | Sampling packages: context, survey, health, audio, Apple Watch, Polar, Movesense | [Available packages](/carp-mobile-sensing/sampling-packages/available-packages) |
+| Deploy and collect data | CARP Web Services (CAWS), or your own server | [Storage](/start/storage-caws) |
 
-```mermaid
-flowchart LR
-    subgraph Phone["Flutter app"]
-        CAMS["carp_mobile_sensing<br/>(CAMS runtime)"]
-        Pkgs["Sampling packages<br/>context · survey · health · audio …"]
-        Wear["Wearable packages<br/>Apple Watch · Polar · Movesense …"]
-        Core["carp_core<br/>domain model"]
-        Pkgs --> CAMS
-        Wear --> CAMS
-        CAMS --> Core
-    end
-    CAMS -- "carp_backend<br/>carp_webservices" --> CAWS[("CARP Web Services<br/>(CAWS)")]
-    Portal["CARP Portal"] --> CAWS
-```
+## What happens
 
-## Study lifecycle
+1. The researcher writes a **study protocol**: when to collect, what to do, which data.
+2. The protocol is either bundled in your app or uploaded to CAWS and given to a participant as a **deployment**.
+3. On the phone, CAMS runs the study: it reads sensors and asks the user to do tasks.
+4. Each measurement goes to a **data manager**, which stores it on the phone or uploads it.
 
-```mermaid
-sequenceDiagram
-    participant R as Researcher
-    participant S as CAWS
-    participant C as SmartPhoneClientManager
-    participant P as Probes
-    R->>S: Upload study protocol
-    R->>S: Invite participant (study deployment)
-    C->>S: tryDeployment()
-    S-->>C: Primary device deployment
-    C->>P: start() sampling
-    P-->>C: Measurements
-    C->>S: Upload data (data manager)
-```
+## Inside CAMS
+
+CAMS is one package with four parts: domain, runtime, infrastructure and sampling packages.
+
+![The four parts of carp_mobile_sensing](/carp-mobile-sensing/images/cams-four-parts.png)
+
+Read [CAMS architecture](/carp-mobile-sensing/architecture) for what each part does, and where it lives in the repo.
 
 ## Where to go next
 
-- [CAMS software architecture](/carp-mobile-sensing/software-architecture) – the runtime in detail
-- [Domain model](/carp-mobile-sensing/domain-model) – protocols, devices, triggers, tasks and measures
-- [API Reference](/api-reference) – generated Dart docs on pub.dev
+- [CAMS architecture](/carp-mobile-sensing/architecture)
+- [Domain](/carp-mobile-sensing/domain/): protocols, devices, triggers, tasks and measures
+- [Create your own sampling package](/carp-mobile-sensing/sampling-packages/create-your-own/)
+- [API Reference](/api-reference): generated Dart docs

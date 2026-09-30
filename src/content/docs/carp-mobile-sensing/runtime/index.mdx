@@ -1,0 +1,42 @@
+---
+title: "Runtime"
+description: "What lives in lib/runtime: the code that runs a study on the phone"
+sidebar:
+  label: Overview
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`lib/runtime/` **runs** what `lib/domain/` describes. You talk to one class, [`SmartPhoneClientManager`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/SmartPhoneClientManager-class.html); everything below it is created for you.
+
+```text
+SmartPhoneClientManager            one per app
+└─ SmartphoneStudyController       one per study
+   └─ SmartphoneDeploymentExecutor
+      └─ TaskControlExecutor       one per trigger + task pair
+         ├─ TriggerExecutor        decides when
+         └─ TaskExecutor           decides what
+            └─ Probe               one per measure, reads the sensor
+```
+
+Every level is an `Executor` with the same lifecycle: `initialize`, `resume`, `pause`, `dispose`. Resuming the client resumes the whole tree.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`runtime/client_manager.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/client_manager.dart) | The entry point |
+| [`runtime/study_controller.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/study_controller.dart) | One study |
+| [`runtime/executors/`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/executors/) | The tree above |
+| [`runtime/app_task_controller.dart, user_tasks.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/app_task_controller.dart, user_tasks.dart) | The user task queue |
+| [`runtime/device_manager/, permissions.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/device_manager/, permissions.dart) | Devices and permission requests |
+| [`runtime/sampling_package_registry.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/sampling_package_registry.dart) | Finds the probe for a measure type |
+
+## Pages
+
+<CardGrid>
+  <LinkCard title="Client manager and study controller" href="/carp-mobile-sensing/runtime/client-and-study-controller" description="The lifecycle you drive from your app" />
+  <LinkCard title="Executors" href="/carp-mobile-sensing/runtime/executors" description="How a protocol becomes running probes" />
+  <LinkCard title="App tasks and user tasks" href="/carp-mobile-sensing/runtime/app-tasks" description="The task queue your UI shows" />
+  <LinkCard title="Devices and permissions" href="/carp-mobile-sensing/runtime/devices-and-permissions" description="Device managers and permission requests" />
+</CardGrid>

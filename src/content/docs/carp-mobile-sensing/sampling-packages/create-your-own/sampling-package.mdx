@@ -1,0 +1,141 @@
+---
+title: "4. Write the SamplingPackage"
+description: "Declare measure types, sampling configurations and create probes"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The package ties steps 1 to 3 together: it declares the measure types, their default sampling configuration, and returns a probe for each type.
+
+## The package class
+
+The first step is that your new sampling package should implement the [`SamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SamplingPackage-class.html) interface:
+
+````dart
+class DeviceSamplingPackage extends SmartphoneSamplingPackage {
+  /// Measure type for collection of basic device information 
+  static const String DEVICE_INFORMATION =
+      '${CarpDataTypes.CARP_NAMESPACE}.deviceinformation';
+
+  /// Measure type for collection of free physical and virtual memory.
+  static const String FREE_MEMORY =
+      '${CarpDataTypes.CARP_NAMESPACE}.freememory';
+
+  /// Measure type for collection of battery level and charging status.
+  static const String BATTERY_STATE =
+      '${CarpDataTypes.CARP_NAMESPACE}.batterystate';
+
+  /// Measure type for collection of screen events (on/off/unlocked).
+  static const String SCREEN_EVENT =
+      '${CarpDataTypes.CARP_NAMESPACE}.screenevent';
+
+  /// Measure type for collection of the time zone of the device.
+  static const String TIMEZONE = '${CarpDataTypes.CARP_NAMESPACE}.timezone';
+
+  @override
+  DataTypeSamplingSchemeMap get samplingSchemes =>
+      DataTypeSamplingSchemeMap.from([
+        DataTypeSamplingScheme(CamsDataTypeMetaData(
+          type: DEVICE_INFORMATION,
+          displayName: "Device Information",
+          timeType: DataTimeType.POINT,
+          dataEventType: DataEventType.ONE_TIME,
+        )),
+        DataTypeSamplingScheme(
+            CamsDataTypeMetaData(
+              type: FREE_MEMORY,
+              displayName: "Free Memory",
+              timeType: DataTimeType.POINT,
+            ),
+            IntervalSamplingConfiguration(
+              interval: const Duration(minutes: 1),
+            )),
+        DataTypeSamplingScheme(CamsDataTypeMetaData(
+          type: BATTERY_STATE,
+          displayName: "Battery State",
+          timeType: DataTimeType.POINT,
+        )),
+        DataTypeSamplingScheme(CamsDataTypeMetaData(
+          type: SCREEN_EVENT,
+          displayName: "Screen Events",
+          timeType: DataTimeType.POINT,
+        )),
+        DataTypeSamplingScheme(CamsDataTypeMetaData(
+          type: TIMEZONE,
+          displayName: "Device Timezone",
+          timeType: DataTimeType.POINT,
+          dataEventType: DataEventType.ONE_TIME,
+        )),
+      ]);
+
+  @override
+  void onRegister() {
+    FromJsonFactory().registerAll([
+      DeviceInformation(),
+      BatteryState(),
+      FreeMemory(),
+      ScreenEvent(),
+      Timezone(''),
+    ]);
+  }
+
+  @override
+  Probe? create(String type) => switch (type) {
+        DEVICE_INFORMATION => DeviceProbe(),
+        FREE_MEMORY => MemoryProbe(),
+        BATTERY_STATE => BatteryProbe(),
+        TIMEZONE => TimezoneProbe(),
+        SCREEN_EVENT => (Platform.isAndroid) ? ScreenProbe() : null,
+        _ => null,
+      };
+}
+````
+
+The measures supported by this package are listed as static strings, such as `FREE_MEMORY` defining the type `dk.cachet.carp.freememory`.
+The `DataTypeSamplingSchemeMap` defines the configuration of each measure, by specifying the [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) for each measure and its sampling configuration (if needed). The `onRegister()` method is called when the package is registered and in this case registers the data classes for JSON serialization. Finally, the `create()` method is called when a probe is to be created and returns the right probe based on the measure type.
+
+<Aside>
+
+  A note on **Permissions** - the [`CamsDataTypeMetaData`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/CamsDataTypeMetaData-class.html) allows the specification of what OS-specific permissions are needed to collect a measure.
+  
+  In the measures used as an example above, no permissions are required. However, in the [`SensorSamplingPackage`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage-class.html), the `activityRecognition` permission is required in order to collect step counts, as shown in the [`samplingSchemes`](https://pub.dev/documentation/carp_mobile_sensing/latest/sampling_packages/SensorSamplingPackage/samplingSchemes.html) of that package.
+
+</Aside>
+
+## Sampling configurations
+
+Default sampling configurations can be specified as part of `samplingSchemes`, like the `IntervalSamplingConfiguration` specified for the `FREE_MEMORY` measure type above.
+
+There are several built-in sampling configurations available:
+
+| Sampling configuration | Description |
+| --- | --- |
+| [`PersistentSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PersistentSamplingConfiguration-class.html) | Persistently saves the state of data sampling for continuous long-running sampling behavior across app restart. |
+| [`HistoricSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/HistoricSamplingConfiguration-class.html) | Configures retrospective or backfilled collection of historical data. |
+| [`IntervalSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) | Samples at a fixed interval (delay) between measurements. |
+| [`PeriodicSampling Configuration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/PeriodicSamplingConfiguration-class.html) | Samples in periodic windows using both interval and duration settings. |
+
+But you can write your own sampling configuration tailored to a specific measure and hence how data should be collected in a probe. As an example of how to write a sampling configuration, the [`IntervalSamplingConfiguration`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/IntervalSamplingConfiguration-class.html) is shown below:
+
+```dart
+/// A sampling configuration that allows configuring the time [interval] in
+/// between subsequent measurements.
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class IntervalSamplingConfiguration extends PersistentSamplingConfiguration {
+  /// Sampling interval (i.e., delay between sampling).
+  Duration interval;
+
+  IntervalSamplingConfiguration({required this.interval}) : super();
+
+  @override
+  Function get fromJsonFunction => _$IntervalSamplingConfigurationFromJson;
+  @override
+  Map<String, dynamic> toJson() => _$IntervalSamplingConfigurationToJson(this);
+  factory IntervalSamplingConfiguration.fromJson(Map<String, dynamic> json) =>
+      FromJsonFactory().fromJson(json) as IntervalSamplingConfiguration;
+}
+```
+
+Note that a sampling configuration must extend from one of the sampling configuration types (e.g., `SamplingConfiguration` or `PersistentSamplingConfiguration`).
+
+Sampling configurations can be part of a study protocol where you can [override](https://pub.dev/documentation/carp_core/latest/common/Measure/overrideSamplingConfiguration.html) the sampling configuration of a measure.

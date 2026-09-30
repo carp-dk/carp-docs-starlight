@@ -1,0 +1,231 @@
+---
+title: "Study protocol"
+description: "SmartphoneStudyProtocol, SmartphoneDeployment and SmartphoneStudy"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A study is written once as a [`SmartphoneStudyProtocol`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SmartphoneStudyProtocol-class.html). The runtime turns it into a deployment and then a study on the phone.
+
+| Step | Class | Meaning |
+| --- | --- | --- |
+| Write | [`SmartphoneStudyProtocol`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SmartphoneStudyProtocol-class.html) | Description of how the study is executed on a phone |
+| Deploy | [`SmartphoneDeployment`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SmartphoneDeployment-class.html) | The protocol plus this phone's device registration |
+| Run | [`SmartphoneStudy`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SmartphoneStudy-class.html) | The study as held by the client manager, with its status |
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/smartphone_protocol.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/smartphone_protocol.dart) | The protocol and its `addTaskControl` helpers |
+| [`domain/core/smartphone_deployment.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/smartphone_deployment.dart) | The deployment |
+| [`domain/core/smartphone_study.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/smartphone_study.dart) | The study and its status events |
+| [`domain/core/study_description.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/study_description.dart) | Title, description and responsible person, shown to participants |
+
+## Defining a protocol
+
+Data collection is configured as a [`StudyProtocol`](https://pub.dev/documentation/carp_core/latest/protocol/StudyProtocol-class.html).
+A study protocol is always executed by one or more [primary devices](https://pub.dev/documentation/carp_core/latest/protocol/StudyProtocol/primaryDevices.html) (e.g., a smartphone) and can use a set of [connected devices](https://pub.dev/documentation/carp_core/latest/protocol/StudyProtocol/connectedDevices.html) (e.g., a heart rate monitor).
+Overall, a study protocol holds a set of triggers, which can trigger one or more tasks, which again hold a set of measures to collect. A measure can be configured using a sampling configuration. This is illustrated below.
+A trigger configures *when* to collect data (e.g., every hour), a task configures *how* to collect data (e.g., which device to use), and a measure configures *what* to collect (e.g., location).
+
+![carp_mobile_sensing_architecture](/carp-mobile-sensing/images/carp_protocol_domain.svg)
+
+## The protocol class
+
+A [`StudyProtocol`](https://pub.dev/documentation/carp_core/latest/protocol/StudyProtocol-class.html) holds the entire definition of the study to be done, including the owner and name of the study, where to store the data, and which "primary device" that is responsible for data collection.
+
+````dart
+// Create a study protocol storing data in a local SQLite database.
+final protocol = SmartphoneStudyProtocol(
+  ownerId: 'abc@dtu.dk',
+  name: 'Track patient movement',
+  dataEndPoint: SQLiteDataEndPoint(),
+);
+
+// Define which devices are used for data collection.
+// In this case, it is only a smartphone working as the primary device.
+var phone = Smartphone();
+protocol.addPrimaryDevice(phone);
+````
+
+<Aside>
+See [Data Managers](/carp-mobile-sensing/infrastructure/data-managers) for a list of available data manager and endpoints.
+</Aside>
+
+<Aside type="tip">
+You can specify more elaborate descriptions of a protocol and the nature of a study by specifying a [StudyDescription](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/StudyDescription-class.html) which includes information on study purpose, homepage, privacy, and responsible researcher.
+</Aside>
+
+## A first protocol
+
+In CAMS, sensing is configured in a [`SmartphoneStudyProtocol`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/SmartphoneStudyProtocol-class.html).
+
+You can use the Dart API to create a protocol directly in your app like this:
+
+```dart
+final phone = Smartphone();
+final protocol =
+    SmartphoneStudyProtocol(
+        ownerId: 'AB',
+        name: 'Tracking steps, light, screen, and battery',
+        dataEndPoint: SQLiteDataEndPoint(),
+      )
+      ..addPrimaryDevice(phone)
+      ..addParticipantRole(ParticipantRole('Participant'))
+      ..addTaskControl(
+        DelayedTrigger(delay: const Duration(seconds: 10)),
+        BackgroundTask(
+          measures: [
+            Measure(type: SensorSamplingPackage.STEP_EVENT),
+            Measure(type: SensorSamplingPackage.AMBIENT_LIGHT),
+            Measure(type: DeviceSamplingPackage.SCREEN_EVENT),
+            Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+          ],
+        ),
+        phone,
+        Control.Start,
+      );
+```
+
+This example create a study protocol that collects steps, light, and screen and battery events from the phone, stores this in the local SQLite database. Data sampling "starts" after a delay of 10 seconds.
+
+<Aside type="tip">
+  You can use the `local` constructor if you're make a "local" protocol that (i) only collects simple measures in the background, (ii) only uses the phone as a device, (ii) only have one participant, and (iv) stores data locally in the SQLite database
+
+  ```dart
+  var protocol = SmartphoneStudyProtocol.local(
+    name: 'Tracking steps, light, screen, and battery',
+    measures: [
+      Measure(type: SensorSamplingPackage.STEP_EVENT),
+      Measure(type: SensorSamplingPackage.AMBIENT_LIGHT),
+      Measure(type: DeviceSamplingPackage.SCREEN_EVENT),
+      Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+    ],
+  );
+  ```
+
+</Aside>
+
+<Aside>
+  For deeper model details, see [Domain Model](/carp-mobile-sensing/domain/) and [Measure Types](/carp-mobile-sensing/sampling-packages/available-packages).
+</Aside>
+
+<Aside>
+  For transformation formats and privacy schemas, see [Data Transformation and Privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy).
+</Aside>
+
+## Examples
+
+Now that we know the study protocol domain model, we're ready to create the study protocol - which basically just is a list of triggers of tasks with a set of measures.
+Examples are included below.
+
+<Tabs>
+
+<TabItem label="Background sensing">
+
+```dart
+final protocol =
+    SmartphoneStudyProtocol(
+        ownerId: 'AB',
+        name: 'Tracking steps, light, screen, and battery',
+        dataEndPoint: SQLiteDataEndPoint(),
+      )
+      ..addPrimaryDevice(Smartphone())
+      ..addParticipantRole(ParticipantRole('Participant'))
+      ..addTaskControl(
+        ImmediateTrigger(),
+        BackgroundTask(
+          measures: [
+            Measure(type: SensorSamplingPackage.STEP_EVENT),
+            Measure(type: SensorSamplingPackage.AMBIENT_LIGHT),
+            Measure(type: DeviceSamplingPackage.SCREEN_EVENT),
+            Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+            Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION),
+          ],
+        ),
+      );
+```
+
+</TabItem>
+
+<TabItem label="Trigger examples">
+
+```dart
+final protocol = SmartphoneStudyProtocol(...);
+var phone = Smartphone();
+protocol.addPrimaryDevice(phone);
+
+// Collect timezone info every time the app restarts.
+protocol.addTaskControl(
+  ImmediateTrigger(),
+  BackgroundTask(measures: [Measure(type: DeviceSamplingPackage.TIMEZONE)]),
+  phone,
+);
+
+// Collect device info only once, when this study is deployed.
+protocol.addTaskControl(
+  OneTimeTrigger(),
+  BackgroundTask(
+    measures: [Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION)],
+  ),
+  phone,
+);
+
+// Collect IMU data every 10 secs for 1 sec.
+protocol.addTaskControl(
+  PeriodicTrigger(period: const Duration(seconds: 10)),
+  BackgroundTask(
+    measures: [
+      Measure(type: SensorSamplingPackage.ACCELERATION),
+      Measure(type: SensorSamplingPackage.ROTATION),
+    ],
+    duration: const Duration(seconds: 1),
+  ),
+  phone,
+);
+
+// Check periodically for a condition to trigger the task
+protocol.addTaskControl(
+  ConditionalPeriodicTrigger(
+    period: Duration(seconds: 20),
+    triggerCondition: () => ('jakob'.length == 5),
+  ),
+  BackgroundTask()
+    ..addMeasure(Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION)),
+  phone,
+);
+```
+
+</TabItem>
+
+<TabItem label="AppTask example">
+
+```dart
+final protocol = SmartphoneStudyProtocol(...);
+var phone = Smartphone();
+protocol.addPrimaryDevice(phone);
+
+// Add a cron job that triggers an app task every day at 11:45
+// This will show a notification in the OS and when the user click this
+// the app task is triggered and the device information is collected.
+protocol.addTaskControl(
+  CronScheduledTrigger.parse(cronExpression: '45 11 * * *'),
+  AppTask(
+    type: AppTask.SENSING_TYPE,
+    title: "Click here to collect device information",
+    measures: [Measure(type: DeviceSamplingPackage.DEVICE_INFORMATION)],
+    notification: true,
+  ),
+  phone,
+);
+
+```
+
+</TabItem>
+
+</Tabs>
+
+## Next
+
+The protocol is deployed and run by the [runtime](/carp-mobile-sensing/runtime/client-and-study-controller).

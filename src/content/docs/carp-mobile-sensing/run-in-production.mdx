@@ -1,39 +1,18 @@
 ---
-title: Best Practice
-description: Platform-specific guidance for Android and iOS
+title: "Run in production"
+description: "Android and iOS setup, background sensing, permissions and build issues"
 ---
 
-import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 This page contain misc. platform-specific guidance and tips when running CAMS in production apps.
 
-<CardGrid>
-  <Card title="Background sensing" icon="moon">
 
-Keep sampling stable on Android and iOS under power-management constraints.
-
-</Card>
-  <Card title="iOS setup" icon="apple">
-
-Configure Podfile, file access, and platform-specific constraints.
-
-</Card>
-  <Card title="Notifications">
-
-Set up local notification behavior required by app tasks and background flows.
-
-</Card>
-  <Card title="Build and permissions" icon="setting">
-
-Resolve common build issues and configure permissions correctly.
-
-</Card>
-</CardGrid>
 
 ## Background sensing
 
 Starting from version 2.0, CAMS supports background sensing natively on Android using the [flutter_background](https://pub.dev/packages/flutter_background) plugin.
-iOS does not allow apps to run in the background as such, but there are a few things you can do to [optimize data sampling on iOS](/carp-mobile-sensing/best-practice#ios).
+iOS does not allow apps to run in the background as such, but there are a few things you can do to [optimize data sampling on iOS](/carp-mobile-sensing/run-in-production#ios).
 
 ### Android
 

@@ -1,0 +1,41 @@
+---
+title: Architecture
+description: How the four parts of carp_mobile_sensing fit together
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+![carp_mobile_sensing has four parts: domain, runtime, infrastructure and sampling packages](/carp-mobile-sensing/images/cams-four-parts.png)
+
+`carp_mobile_sensing` is one Dart package with four parts. Each is a folder under `lib/`, and each has its own section in this documentation.
+
+| Part | Folder | Answers | Read |
+| --- | --- | --- | --- |
+| **Domain** | `lib/domain/` | What is a study? Protocol, triggers, tasks, measures, devices | [Domain](/carp-mobile-sensing/domain/) |
+| **Runtime** | `lib/runtime/` | How is it run? Client manager, executors, task queue | [Runtime](/carp-mobile-sensing/runtime/) |
+| **Infrastructure** | `lib/infrastructure/` | Where does it go? Data managers, persistence, notifications | [Infrastructure](/carp-mobile-sensing/infrastructure/) |
+| **Sampling packages** | `lib/infrastructure/sampling_packages/` | Where does the data come from? Probes for sensors and devices | [Sampling packages](/carp-mobile-sensing/sampling-packages/) |
+
+Sampling packages sit in a subfolder of `infrastructure/` but are exported as their own library (`lib/sampling_packages.dart`). Most sampling packages are separate pub.dev packages.
+
+## What happens when a study runs
+
+1. **Domain.** You write a `SmartphoneStudyProtocol`.
+2. **Runtime.** `SmartPhoneClientManager` adds it as a study and a `SmartphoneStudyController` runs it. Executors start the triggers, and tasks start probes.
+3. **Sampling packages.** Each probe reads a sensor or device and emits a `Measurement`.
+4. **Infrastructure.** The study's data manager stores or uploads each measurement. State is persisted, so the study resumes after a restart.
+
+## How the parts depend on each other
+
+- The **domain** knows nothing about the others. It only describes.
+- The **runtime** uses the domain, and finds probes through the `SamplingPackageRegistry`.
+- **Infrastructure** implements interfaces the domain declares (`DataManager`, `NotificationManager`), so you can replace them.
+- **Sampling packages** implement the `SamplingPackage` interface and extend the runtime's `Probe` and `DeviceManager`. That is what makes it possible to [create your own](/carp-mobile-sensing/sampling-packages/create-your-own/).
+
+## Outside the package
+
+| Outside | Role |
+| --- | --- |
+| [`carp_core`](https://pub.dev/packages/carp_core) | Shared domain classes, used by the domain part |
+| Flutter plugins | Access to sensors and the OS, called from probes |
+| CAWS or your server | Optional. Deploys studies and receives data, through a data manager |

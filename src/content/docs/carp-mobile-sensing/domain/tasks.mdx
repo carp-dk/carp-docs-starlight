@@ -1,0 +1,117 @@
+---
+title: "Tasks and app tasks"
+description: "What is done when a trigger fires"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`domain/core/tasks.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/tasks.dart) | `FunctionTask`; `BackgroundTask` comes from `carp_core` |
+| [`domain/core/app_task.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/app_task.dart) | `AppTask`, a task the user must attend to |
+| [`domain/core/data.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/domain/core/data.dart) | `CompletedAppTask`, the measurement written when a user finishes one |
+| [`runtime/user_tasks.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/runtime/user_tasks.dart) | The runtime side of an app task, see [App tasks and user tasks](/carp-mobile-sensing/runtime/app-tasks) |
+
+## Tasks and task controls
+
+A task is defined via a [`TaskConfiguration`](https://pub.dev/documentation/carp_core/latest/common/TaskConfiguration-class.html) and configures what measures to collect. For example, a task can specify to sample accelerometer and gyroscope measures from the smartphone during a tremor assessment, or sample heart rate and ECG data from a wearable device.
+
+CAMS comes with two basic types of tasks - a passive sensing task and an active user task:
+
+* [`BackgroundTask`](https://pub.dev/documentation/carp_core/latest/common/BackgroundTask-class.html) - a task that starts collecting data as specified in the measures, when the task is resumed. Hence, this type of task is used in background mobile sensing data sampling, which does not involve the user.
+* [`AppTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppTask-class.html) - a task that involves the app (and hence potentially the user) in data sampling. An app task notifies the app when resumed (or paused). For example, if a `PeriodicTrigger` resumes an `AppTask` with a survey measure, this survey is handed over to the app whenever the trigger resumes. See the [AppTask Model](/carp-mobile-sensing/runtime/app-tasks) on how the AppTask model is used.
+
+A [TaskControl](https://pub.dev/documentation/carp_core/latest/common/TaskControl-class.html) configures **how** to collect data and specifies the linkage between a trigger, a task, and a device. A task control controls (starts or stops) when a task is triggered on a device.
+
+## Kinds of task
+
+| Task | Runs | For |
+| --- | --- | --- |
+| `BackgroundTask` | Silently, in the background | Sensor data collection |
+| [`FunctionTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/FunctionTask-class.html) | A Dart function you supply | Custom logic on a trigger |
+| [`AppTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppTask-class.html) | Puts a [`UserTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/runtime/UserTask-class.html) in front of the user | Surveys, cognitive tests, audio and other user input |
+
+## Configuring an app task
+
+App tasks are defined in the [`study_protocol_manager.dart`](https://github.com/cph-cachet/pulmonary_monitor_app/blob/master/lib/sensing/study_protocol_manager.dart) file.
+For example, the sensing app task at the bottom of the list is created by this configuration:
+
+````dart
+var protocol = SmartphoneStudyProtocol(...);
+
+...
+
+// Define which devices are used for data collection.
+Smartphone phone = Smartphone();
+protocol.addPrimaryDevice(phone);
+
+// Define the online weather service and add it as a 'device'
+final weatherService = WeatherService(
+  apiKey: '...',
+);
+protocol.addConnectedDevice(weatherService, phone);
+
+// Define the online air quality service and add it as a 'device'
+final airQualityService = AirQualityService(
+  apiKey: '...',
+);
+protocol.addConnectedDevice(airQualityService, phone);
+
+// Create an app task that collects air quality and weather data,
+// and notify the user.
+//
+// Note that for this to work, the AirQualityService and WeatherService 
+// need to be defined and added as connected devices to this phone.
+var environmentTask = AppTask(
+  type: AppTask.SENSING_TYPE,
+  name: 'Environment Task',
+  title: "Weather & Air Quality",
+  description: "Collect local weather and air quality",
+  notification: true,
+  measures: [
+    Measure(type: ContextSamplingPackage.WEATHER),
+    Measure(type: ContextSamplingPackage.AIR_QUALITY),
+  ],
+);
+
+// Make sure to always have an environment task on the task list by using
+// a NoUserTaskTrigger.
+protocol.addTaskControl(
+  NoUserTaskTrigger(taskName: environmentTask.name),
+  environmentTask,
+  phone,
+);
+````
+
+As shown above, an AppTask follows the [Trigger-Task-Measure domain model in CAMS](/carp-mobile-sensing/domain/study-protocol) - a trigger activates the task, and the task defines which measures to collect.
+In comparison to an [`BackgroundTask`](https://pub.dev/documentation/carp_core/latest/common/BackgroundTask-class.html), an [`AppTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppTask-class.html) can be configured with user-facing properties:
+
+| Property | Purpose |
+| --- | --- |
+| `type` | Task type, for example sensing, survey, or audio. |
+| `title` | Short title shown on the task card. |
+| `description` | Short descriptive text shown on the task card. |
+| `instructions` | More detailed guidance for the user. |
+| `time to complete` | Estimated completion time for the task. |
+| `notification` | Whether a notification is sent when a new task is available. |
+| `expire` | When the task expires and is no longer available. |
+
+The above code adds a [`NoUserTaskTrigger`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/NoUserTaskTrigger-class.html) with an [`AppTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppTask-class.html) of type `sensing` and measures `WEATHER` and `AIR_QUALITY`.
+When triggered, the task is enqueued and can be shown in the app UI. When the user starts it (for example by pressing "*PRESS HERE TO FINISH TASK*"), a background task is started and collects the measures, and the app task is marked as done.
+
+For more setup details, see the [PulmonaryMonitor](https://github.com/cph-cachet/pulmonary_monitor_app).
+
+## Types of app tasks
+
+Currently, CAMS supports different types of AppTasks, all enumerated in the [`AppTask`](https://pub.dev/documentation/carp_mobile_sensing/latest/domain/AppTask-class.html) class:
+
+| Type | Purpose |
+| --- | --- |
+| `SENSING_TYPE` | Collects sensing data in a background task. |
+| `SURVEY_TYPE` | Starts a survey from the [carp_survey_package](https://pub.dev/packages/carp_survey_package). |
+| `INFORMED_CONSENT_TYPE` | Show an informed consent flow to the user, typically using the [research_package](https://pub.dev/packages/research_package)  |
+| `COGNITIVE_ASSESSMENT_TYPE` | Runs a cognitive assessment from the [carp_survey_package](https://pub.dev/packages/carp_survey_package). |
+| `HEALTH_ASSESSMENT_TYPE` | Collects health data via the [carp_health_package](https://pub.dev/packages/carp_health_package). |
+| `AUDIO_TYPE`, `VIDEO_TYPE`, `IMAGE_TYPE` | Collects media data via the [carp_audio_package](https://pub.dev/packages/carp_audio_package). |

@@ -1,0 +1,21 @@
+---
+title: "Settings and logging"
+description: "Paths, user id and debug output"
+---
+
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`Settings` is a singleton initialised by `SmartPhoneClientManager().configure()`. It holds the app name and version, the time zone, a persistent random user id, and the base paths for deployments, cache and data files.
+
+Set `Settings().debugLevel` (`none`, `info`, `warning`, `debug`; default `warning`) to control what CAMS prints. `debug` output only appears in Flutter debug mode.
+
+## Where in the repo
+
+| File | What is in it |
+| --- | --- |
+| [`infrastructure/settings.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/settings.dart) | `Settings` and `DebugLevel` |
+| [`infrastructure/services/logging.dart`](https://github.com/carp-dk/carp.sensing-flutter/blob/main/carp_mobile_sensing/lib/infrastructure/services/logging.dart) | `info`, `warning`, `debug` log functions |
+
+```dart
+Settings().debugLevel = DebugLevel.debug;
+```
