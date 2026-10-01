@@ -9,3 +9,42 @@
   --sl-color-accent: #c30e32;
   --sl-color-accent-high: #5c0718;
 }
+
+/* Phone screenshots: keep them phone-sized. */
+.sl-markdown-content img[src*="/studies-app/images/"] {
+  max-width: 260px;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 12px;
+}
+
+/* Landing page: a bigger hero image. Starlight crops hero images to 400x400, so it is a CSS background. */
+.carp-hero {
+  width: 100%;
+  aspect-ratio: 8 / 5;
+  background: url('../assets/carp-hero.png') center / contain no-repeat;
+  border-radius: 18px;
+}
+@media (min-width: 50rem) {
+  .hero {
+    grid-template-columns: 4fr 7fr !important;
+  }
+  .hero > .hero-html {
+    width: 100% !important;
+  }
+}
+
+.carp-intro {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+}
+.carp-intro iframe {
+  aspect-ratio: 9 / 16;
+  width: min(100%, 270px);
+  justify-self: center;
+}
+@media (min-width: 50rem) {
+  .carp-intro {
+    grid-template-columns: 1fr 270px;
+  }
+}
