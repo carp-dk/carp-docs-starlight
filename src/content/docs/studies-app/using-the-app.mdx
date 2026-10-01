@@ -1,0 +1,58 @@
+---
+title: Use the app
+description: What the four tabs do, how tasks work, and how to leave a study.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The app has four tabs at the bottom. Your **profile** is the round icon at the top right.
+
+| Tab | What it is for |
+| --- | --- |
+| **Home** | The study you are in, a summary of what is connected, your progress, and messages from the study team. |
+| **Tasks** | Things the study asks you to do. |
+| **Statistics** | Your own data in charts. |
+| **Connections** | The phone, wearables and services the study uses. |
+
+## Home
+
+![Home: the study, connections and progress](/studies-app/images/home.jpg)
+
+* **About the study** opens the study description, privacy policy, who to contact, who is responsible, and a download of your signed consent.
+* **Connections** says how many data sources are active, for example *Partially connected: 5 sources active, 2 inactive*.
+* **Your progress** shows how many days you have been in the study and how many tasks you completed and have pending.
+
+## Tasks
+
+Tasks have two lists, **Pending** and **Completed**. Each card shows the kind of task, how long it takes, and how long is left. Tap **Start**.
+
+![The task list](/studies-app/images/tasks.jpg)
+
+| Kind | Example |
+| --- | --- |
+| **Survey** | A questionnaire with choices, sliders, numbers, dates and free text. |
+| **Cognition** | Tapping test, reaction-time test. |
+| **Audio / Video / Image** | Record your voice, a short video, or take a photo. |
+| **Health** | Health assessments. |
+
+A survey shows its progress (for example *3 of 8*), has a **Next** button, and lets you skip questions the study allows to skip.
+
+![A survey question](/studies-app/images/survey.jpg)
+
+Tasks can be timed. A task that is not done in time moves to *Expired*. Developers: this is the `AppTask` and `UserTask` model in [App tasks](/carp-mobile-sensing/runtime/app-tasks/).
+
+## Statistics
+
+Charts of the data the study collects, for example tasks completed, heart rate, sleep and steps. Which charts you see depends on what the study measures.
+
+![Statistics: tasks and heart rate](/studies-app/images/statistics.jpg)
+
+## Connections
+
+Shows the **phone**, the **devices** you can connect (for example Polar and Movesense, with a **Connect** button), and the **services** the study uses: background sensing, location, air quality, weather and Health Connect.
+
+![Connections](/studies-app/images/connections.jpg)
+
+## Leave the study
+
+Open your profile, then tap **Leave study**.

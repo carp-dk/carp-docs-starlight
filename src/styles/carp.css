@@ -9,3 +9,10 @@
   --sl-color-accent: #c30e32;
   --sl-color-accent-high: #5c0718;
 }
+
+/* Phone screenshots: keep them phone-sized. */
+.sl-markdown-content img[src*="/studies-app/images/"] {
+  max-width: 260px;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 12px;
+}

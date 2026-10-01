@@ -33,7 +33,7 @@ for (const k of ['href', 'src']) if (fix(node.properties[k]) !== node.properties
 },
 },
 mdxJsxFlowElement: {
-filter: ['LinkCard', 'LinkButton', 'a', 'img'],
+filter: ['LinkCard', 'LinkButton', 'a', 'img', 'video'],
 visit(node, ctx) {
 for (const a of node.attributes) if (['href', 'src'].includes(a.name) && fix(a.value) !== a.value) ctx.setProperty(node, a.name, fix(a.value));
 },
@@ -95,6 +95,15 @@ markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 							],
 						},
 						'start/next-steps',
+					],
+				},
+				{
+					label: 'CARP Studies app',
+					items: [
+						{ label: 'Overview', slug: 'studies-app' },
+						'studies-app/join-a-study',
+						'studies-app/using-the-app',
+						'studies-app/run-your-study',
 					],
 				},
 				{
