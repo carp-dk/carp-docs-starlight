@@ -1,40 +1,99 @@
 ---
 title: CARP Documentation
+description: Open-source platform for collecting data from phones and wearables, built at DTU.
 template: splash
 hero:
-  tagline: Technical documentation for the Copenhagen Research Platform.
+  title: Collect data from phones and wearables
+  tagline: CARP is an open-source platform from the Technical University of Denmark. Run a study in a ready-made app, or build your own with Flutter.
+  image:
+    html: '<div class="carp-hero" role="img" aria-label="The CARP Studies app showing activity and sleep, study data and a task list"></div>'
   actions:
     - text: New to CARP? Start here
       link: start/
       icon: right-arrow
-    - text: Architecture overview
-      link: architecture/
+    - text: Join a study in the app
+      link: studies-app/join-a-study/
+      variant: secondary
+    - text: Ask on Discord
+      link: https://discord.gg/sswpqGvnf5
       variant: minimal
-    - text: API Reference
-      link: api-reference/
-      variant: minimal
-description: "Welcome to the technical documentation site for the Copenhagen Research Platform (CARP)"
+      icon: discord
 ---
 
-import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-<img
-  src="/images/running.jpg"
-  alt="Running"
-/>
+## What is CARP?
 
-## Flutter Plugins & Packages
+<div class="carp-intro">
+<div>
 
-The following are list of flutter plugins developed by the Copenhagen research platform:
+CARP (Copenhagen Research Platform) is a set of open-source tools for **collecting data from smartphones, wearables and the people who carry them**. Researchers use it for health and behavior studies. Developers use it to add sensing to any Flutter app.
+
+* **Sensors:** location, steps, activity, sleep, screen, battery, Bluetooth and more
+* **Wearables and health apps:** Health Connect, Apple Health, Apple Watch, Polar, Movesense
+* **From people:** surveys, cognitive tests, voice, video and photos
+
+See [what CARP can collect](/start/#what-can-carp-collect).
+
+</div>
+<iframe
+  width="315"
+  height="560"
+  src="https://www.youtube.com/embed/um6BUKKiIFY"
+  title="CARP Studies: run your research study on participants' phones"
+  allow="accelerometer; encrypted-media; picture-in-picture"
+  allowfullscreen
+  loading="lazy"
+  style="border:0;width:100%;height:100%"
+></iframe>
+</div>
+
+## Why CARP?
 
 <CardGrid>
+  <Card title="Open source" icon="github">
+    MIT license. Read the code, change it, run it yourself.
+  </Card>
+  <Card title="Private by design" icon="approve-check">
+    Participants can join anonymously with a code, and data can be anonymized before it leaves the phone. See [privacy](/carp-mobile-sensing/domain/data-endpoints-and-privacy/).
+  </Card>
+  <Card title="Integrations are ready" icon="puzzle">
+    Phone sensors, Health Connect, Apple Health, Apple Watch, Polar, Movesense, Movisens and eSense. See [available packages](/carp-mobile-sensing/sampling-packages/available-packages/).
+  </Card>
+  <Card title="Add anything" icon="rocket">
+    If a phone sensor or wearable has an SDK, you can add it as a [sampling package](/carp-mobile-sensing/sampling-packages/create-your-own/).
+  </Card>
+</CardGrid>
 
-  <LinkCard title="Health" href="/packages/flutter-health-plugin/" description="Read and write health data from/to Apple Health and Google Health Connect" />
+## Pick your path
 
+<CardGrid>
+  <Card title="Use the CARP Studies app" icon="star">
+    Already on the [App Store](https://apps.apple.com/us/app/carp-studies/id1569798025) and [Google Play](https://play.google.com/store/apps/details?id=dk.cachet.carp_study_app). You write the protocol, participants install the app. No app code, nothing to deploy.
+    [Start with the app](/studies-app/).
+  </Card>
+  <Card title="Build your own app" icon="laptop">
+    Your own screens and flow, written in Flutter with CARP Mobile Sensing.
+    [Your first CARP app](/start/first-app/).
+  </Card>
+</CardGrid>
+
+## Components
+
+<CardGrid>
   <LinkCard title="Mobile Sensing" href="/carp-mobile-sensing/" description="Collect data from onboard phone sensors, wearable devices, and users" />
-
-  <LinkCard title="CARP Debug Toolkit" href="/packages/debug-toolkit/" description="An in-app debugging toolkit for CARP (and any) Flutter apps" />
-
+  <LinkCard title="Health" href="/packages/flutter-health-plugin/" description="Read and write health data from/to Apple Health and Google Health Connect" />
   <LinkCard title="Apple Watch Sensing" href="/packages/apple-watch/" description="Collect passive sensor data from an Apple Watch in a CARP Mobile Sensing study" />
+  <LinkCard title="CARP Debug Toolkit" href="/packages/debug-toolkit/" description="An in-app debugging toolkit for CARP (and any) Flutter apps" />
+  <LinkCard title="Architecture" href="/architecture/" description="How the parts of CARP fit together" />
+  <LinkCard title="API Reference" href="/api-reference/" description="Generated reference for every CARP Dart package" />
+</CardGrid>
 
+## Community and help
+
+<CardGrid>
+  <LinkCard title="Discord" href="https://discord.gg/sswpqGvnf5" description="Ask questions, share your study, talk to the team." />
+  <LinkCard title="GitHub" href="https://github.com/carp-dk" description="Source code, issues and pull requests." />
+  <LinkCard title="Email" href="mailto:support@carp.dk" description="support@carp.dk" />
+  <LinkCard title="carp.dk" href="https://carp.dk" description="About CARP, studies and publications." />
 </CardGrid>

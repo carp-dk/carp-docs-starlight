@@ -84,26 +84,31 @@ markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 					items: [
 						'start',
 						'start/key-concepts',
-						'start/first-app',
 						{
-							label: 'Choosing storage',
+							label: 'Path 1: Use the CARP Studies app',
 							items: [
-								{ label: 'Overview', slug: 'start/where-data-goes' },
-								'start/storage-phone',
-								'start/storage-caws',
-								'start/storage-own-server',
+								{ label: 'Overview', slug: 'studies-app' },
+								'studies-app/join-a-study',
+								'studies-app/using-the-app',
+								'studies-app/run-your-study',
+							],
+						},
+						{
+							label: 'Path 2: Build your own app',
+							items: [
+								'start/first-app',
+								{
+									label: 'Choosing storage',
+									items: [
+										{ label: 'Overview', slug: 'start/where-data-goes' },
+										'start/storage-phone',
+										'start/storage-caws',
+										'start/storage-own-server',
+									],
+								},
 							],
 						},
 						'start/next-steps',
-					],
-				},
-				{
-					label: 'CARP Studies app',
-					items: [
-						{ label: 'Overview', slug: 'studies-app' },
-						'studies-app/join-a-study',
-						'studies-app/using-the-app',
-						'studies-app/run-your-study',
 					],
 				},
 				{
