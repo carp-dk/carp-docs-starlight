@@ -1,15 +1,46 @@
-/* CARP brand red (#C30E32) as the Starlight accent. */
+/* CARP primary blue (#006398, from carp_themes_package used by the Studies App) as the Starlight accent.
+   Dark mode uses the lighter tones of the same Material palette. */
 :root {
-  --sl-color-accent-low: #3d0510;
-  --sl-color-accent: #ff6467;
-  --sl-color-accent-high: #ffd3d4;
+  --sl-color-accent-low: #003351;
+  --sl-color-accent: #93ccff;
+  --sl-color-accent-high: #cde5ff;
 }
 :root[data-theme="light"] {
-  --sl-color-accent-low: #ffd3d4;
-  --sl-color-accent: #c30e32;
-  --sl-color-accent-high: #5c0718;
+  --sl-color-accent-low: #cde5ff;
+  --sl-color-accent: #006398;
+  --sl-color-accent-high: #001d32;
 }
 
+/* Mermaid diagrams in CARP colours, following light/dark mode.
+   !important is needed because Mermaid inlines its own theme styles. */
+pre.mermaid { background: transparent; border: 0; padding: 0; }
+pre.mermaid svg { font-family: inherit; }
+pre.mermaid svg .node :is(rect, path, polygon, circle) {
+  fill: var(--sl-color-gray-6) !important; stroke: var(--sl-color-gray-4) !important; stroke-width: 1px !important;
+}
+pre.mermaid svg .node rect { rx: 8px; ry: 8px; }
+pre.mermaid svg .node.accent :is(rect, path, polygon, circle) {
+  fill: var(--sl-color-accent-low) !important; stroke: var(--sl-color-accent) !important; stroke-width: 1.5px !important;
+}
+pre.mermaid svg .node.muted :is(rect, path, polygon, circle) {
+  fill: transparent !important; stroke-dasharray: 4 3;
+}
+pre.mermaid svg .cluster rect {
+  fill: transparent !important; stroke: var(--sl-color-gray-5) !important; stroke-dasharray: 5 4; rx: 12px; ry: 12px;
+}
+pre.mermaid svg :is(.nodeLabel, .cluster-label span, .label, text.actor, .messageText, .noteText, .labelText, .loopText) {
+  color: var(--sl-color-white) !important; fill: var(--sl-color-white) !important;
+}
+pre.mermaid svg .cluster-label span { color: var(--sl-color-gray-3) !important; font-size: 0.8em; letter-spacing: 0.04em; text-transform: uppercase; }
+pre.mermaid svg .nodeLabel small, pre.mermaid svg .nodeLabel i { color: var(--sl-color-gray-3); font-style: normal; font-size: 0.85em; }
+pre.mermaid svg :is(.flowchart-link, .messageLine0, .messageLine1) { stroke: var(--sl-color-gray-3) !important; }
+pre.mermaid svg :is(marker path, #arrowhead path, .arrowheadPath) { fill: var(--sl-color-gray-3) !important; stroke: var(--sl-color-gray-3) !important; }
+pre.mermaid svg :is(.edgeLabel, .edgeLabel p, .labelBkg) { background: var(--sl-color-bg) !important; color: var(--sl-color-gray-3) !important; font-size: 0.85em; }
+pre.mermaid svg rect.actor { fill: var(--sl-color-gray-6) !important; stroke: var(--sl-color-gray-4) !important; rx: 8px; ry: 8px; }
+pre.mermaid svg .actor-man :is(line, circle) { stroke: var(--sl-color-gray-3) !important; fill: var(--sl-color-gray-6) !important; }
+pre.mermaid svg .actor-line { stroke: var(--sl-color-gray-5) !important; }
+pre.mermaid svg rect.note { fill: var(--sl-color-accent-low) !important; stroke: var(--sl-color-accent) !important; rx: 6px; ry: 6px; }
+pre.mermaid svg .noteText { font-weight: 600; }
 /* Phone screenshots: keep them phone-sized. */
 .sl-markdown-content img[src*="/studies-app/images/"] {
   max-width: 260px;

@@ -1,0 +1,94 @@
+---
+title: "Step 4: Collect"
+description: Start sampling and watch measurements arrive.
+sidebar:
+  label: 4 · Collect
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**What you'll do:** start data collection and show each measurement as it arrives.
+
+## Steps
+
+<Steps>
+
+1. **Replace `lib/main.dart`** with this. It runs Step 3 and then starts collecting:
+
+   ```dart title="lib/main.dart" {22-23,26-28}
+   import 'package:flutter/material.dart';
+   import 'package:carp_mobile_sensing/carp_mobile_sensing.dart';
+   import 'protocol.dart';
+
+   void main() => runApp(const MaterialApp(home: StepsPage()));
+
+   class StepsPage extends StatefulWidget {
+     const StepsPage({super.key});
+     @override
+     State<StepsPage> createState() => _StepsPageState();
+   }
+
+   class _StepsPageState extends State<StepsPage> {
+     final List<String> _log = [];
+
+     @override
+     void initState() {
+       super.initState();
+       _start();
+     }
+
+     Future<void> _start() async {
+       // Step 3: deploy
+       final client = SmartPhoneClientManager();
+       await client.configure();
+       final study = await client.addStudyFromProtocol(createProtocol());
+       await client.tryDeployment(study.studyDeploymentId, study.deviceRoleName);
+
+       // Step 4: collect
+       client.resume();
+       client.measurements.listen((m) => setState(() => _log.insert(0, m.data.dataType.name)));
+     }
+
+     @override
+     Widget build(BuildContext context) => Scaffold(
+           appBar: AppBar(title: const Text('My first CARP app')),
+           body: ListView(children: [for (final line in _log) ListTile(title: Text(line))]),
+         );
+   }
+   ```
+
+   `resume()` presses *play*. `measurements` is a live stream of everything collected.
+
+2. **Run it.**
+
+   ```bash
+   flutter run
+   ```
+
+   Tap **Allow** when the app asks for permissions (notifications, physical activity).
+
+</Steps>
+
+## Check it works
+
+Walk around. `stepevent` and `batterystate` appear in the list. Every measurement is also saved in the database
+on the phone.
+
+## Collect more kinds of data
+
+Add a [sampling package](/sampling-packages/context/) or a [wearable](/wearables/polar/).
+For example, location and activity:
+
+```bash
+flutter pub add carp_context_package
+```
+
+```dart
+SamplingPackageRegistry().register(ContextSamplingPackage()); // before creating the protocol
+Measure(type: ContextSamplingPackage.LOCATION),               // in the protocol
+```
+
+All available measures: [Measure types](/carp-mobile-sensing/sampling-packages/available-packages/).
+To keep collecting when the app is closed, see [Run in production](/carp-mobile-sensing/run-in-production/).
+
+**Next:** [Step 5: Get the data](/backends/where-data-goes/)

@@ -1,0 +1,55 @@
+---
+title: "Step 2: Run your study"
+description: Run your protocol in the CARP Studies app, first on your own phone, then with participants.
+sidebar:
+  label: Overview
+---
+
+import { Aside, Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+You run your protocol in the **CARP Studies app**, a ready-made Android and iPhone app. A participant installs it, joins a study, and the app collects the data the study asks for. **You don't write any app code.** You write the study protocol, and the app follows it.
+
+**Nothing to deploy.** The app is already published. Participants install **CARP Studies** from the [App Store](https://apps.apple.com/us/app/carp-studies/id1569798025) or [Google Play](https://play.google.com/store/apps/details?id=dk.cachet.carp_study_app). You don't build it, sign it or submit it to a store.
+
+It is built on [CARP Mobile Sensing](/carp-mobile-sensing/) (CAMS) and is open source: [carp-dk/carp_study_app](https://github.com/carp-dk/carp_study_app). More about it on [carp.dk](https://carp.dk/new-carp-studies-app/).
+
+## What a participant can do
+
+<CardGrid>
+  <Card title="Join a study" icon="rocket">
+    Scan a QR code, type a short study code, or sign in with an invitation. See [What participants see](/start/run-your-study/what-participants-see/).
+  </Card>
+  <Card title="Give consent" icon="approve-check">
+    Read what the study collects, then sign on the screen. You can download your signed consent later.
+  </Card>
+  <Card title="Do tasks" icon="pencil">
+    Surveys, short cognitive tests (finger tapping, reaction time), voice recordings, video and photos.
+  </Card>
+  <Card title="See their own data" icon="analytics">
+    Sleep, heart rate, steps and activity charts, and progress in the study.
+  </Card>
+  <Card title="Connect devices" icon="heart">
+    Health Connect (Android) or Apple Health, plus wearables such as Polar and Movesense.
+  </Card>
+  <Card title="Collect in the background" icon="random">
+    Location, weather, air quality and steps keep being collected while the app is closed.
+  </Card>
+</CardGrid>
+
+What the participant sees depends on the study. A study with no video task shows no video task, and a study with no wearable shows no wearable.
+
+## From your phone to production
+
+You take the same protocol through three stages. Only the server and the sign-in change.
+
+| Stage | Where the study comes from | Sign in | Data goes to |
+| --- | --- | --- | --- |
+| **On your phone** | Files in the app (`assets/carp`) | Anything works | A database on the phone |
+| **Test server** (`dev`, `test`) | The CARP Portal | A test account or study code | CARP's test server |
+| **Production** | The CARP Portal | Participant accounts or a study code | CARP's server (CAWS) |
+
+<CardGrid>
+  <LinkCard title="Run it on your phone" href="/start/run-your-study/on-your-phone/" description="Clone the app, add your files, flutter run." />
+  <LinkCard title="Go live" href="/start/run-your-study/go-live/" description="Get a Portal account, upload the study, invite participants." />
+  <LinkCard title="What participants see" href="/start/run-your-study/what-participants-see/" description="Joining, consent and the four tabs, with screenshots." />
+</CardGrid>

@@ -1,0 +1,58 @@
+---
+title: Keep data on the phone
+description: Store measurements locally in a database or in files. No server needed.
+sidebar:
+  label: Local storage
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This is the simplest option: **no server, no accounts, no internet**. Measurements
+are saved in the app's private storage on the phone.
+
+## It's one setting: the data endpoint
+
+Where data goes is decided by a single setting in the study protocol, the
+**data endpoint**. Local storage, CAWS and your own server differ only in this
+setting. The rest of the protocol (what to collect, and when) stays the same.
+
+For local storage, pick one of two endpoints:
+
+| Endpoint | Saves data as | Good for |
+| --- | --- | --- |
+| `SQLiteDataEndPoint()` | A small database on the phone | Apps that show the data back, e.g. "your steps this week" |
+| `FileDataEndPoint()` | Text files (JSON), zipped | Handing the data to a researcher |
+
+## Choosing the endpoint
+
+The protocol from [Step 1](/carp-mobile-sensing/build-your-own-app/design/) already uses `SQLiteDataEndPoint()`. To save
+files instead, change only that line:
+
+```dart
+final protocol = SmartphoneStudyProtocol(
+  name: 'My first study',
+  dataEndPoint: FileDataEndPoint(),
+);
+```
+
+## Getting the data off the phone
+
+The data lives in the app's private folder:
+
+- **Database:** `carp-data`, in the app's `databases` folder.
+- **Files:** `carp/deployments/<deployment id>/data/`, in the app's documents folder.
+
+To copy it to your computer:
+
+- **Android:** in Android Studio, open **Device Explorer** and go to
+  `data/data/<your app id>/`. The database is in `databases/`, files in `app_flutter/carp/`.
+- **iPhone:** add `UIFileSharingEnabled` = `YES` to `Info.plist`, plug the phone into
+  a Mac, and open it in **Finder → Files**.
+
+## When to move on
+
+Local storage is perfect for trying things out. For a real study you usually
+want data to arrive centrally without touching each phone. Then look at
+[CAWS](/backends/where-data-goes/caws/) or [your own server](/backends/where-data-goes/own-server/).
+
+More detail: [Data Managers](/carp-mobile-sensing/infrastructure/data-managers/).

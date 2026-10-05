@@ -10,7 +10,7 @@ CARP docs use a handful of technical words. Here they are in plain language.
 ## The tools
 
 <Aside type="note">
-Flutter and Dart matter if you **build your own app** (Path 2). If you use the [CARP Studies app](/studies-app/), skip to [The CARP pieces](#the-carp-pieces).
+Flutter and Dart matter if you run the app from source or [build your own app](/start/make-it-your-own/). If you only write a protocol, skip to [The CARP pieces](#the-carp-pieces).
 </Aside>
 
 **Flutter**
@@ -51,18 +51,18 @@ Flutter and Dart matter if you **build your own app** (Path 2). If you use the [
 
 | Word | Plain meaning | Example |
 | --- | --- | --- |
-| **Study protocol** | The recipe: what to collect, from which device, and when | "Steps and screen events, all day" |
-| **Measure** | One thing to collect | Steps |
-| **Trigger** | *When* to collect | Right away, every hour, every morning at 8:00 |
-| **Task** | A group of measures that start together | "Background sensing", "Morning survey" |
-| **Device** | Where data comes from | The phone, a smartwatch |
-| **Deployment** | One participant's copy of the protocol, running on their phone | Anna's study on Anna's phone |
-| **Measurement** | One piece of collected data, with a timestamp | "12 steps at 09:14" |
-| **Data endpoint** | Where the measurements are saved or sent | On the phone, CAWS, your own server |
+| **[Study protocol](/carp-mobile-sensing/domain/study-protocol/)** | The recipe: what to collect, from which device, and when | "Steps and screen events, all day" |
+| **[Measure](/carp-mobile-sensing/domain/measures-and-data/)** | One thing to collect | Steps |
+| **[Trigger](/carp-mobile-sensing/domain/triggers/)** | *When* to collect | Right away, every hour, every morning at 8:00 |
+| **[Task](/carp-mobile-sensing/domain/tasks/)** | A group of measures that start together | "Background sensing", "Morning survey" |
+| **[Device](/carp-mobile-sensing/domain/devices/)** | Where data comes from | The phone, a smartwatch |
+| **[Deployment](/carp-mobile-sensing/runtime/client-and-study-controller/)** | One participant's copy of the protocol, running on their phone | Anna's study on Anna's phone |
+| **[Measurement](/carp-mobile-sensing/domain/measures-and-data/)** | One piece of collected data, with a timestamp | "12 steps at 09:14" |
+| **[Data endpoint](/carp-mobile-sensing/domain/data-endpoints-and-privacy/)** | Where the measurements are saved or sent | On the phone, CAWS, your own server |
 
 <Aside type="tip">
 If you only remember one sentence: **a protocol is a recipe of measures and triggers;
 the app follows it and produces measurements; the data endpoint decides where they go.**
 </Aside>
 
-Next: [build your first app](/start/first-app/).
+Next: [how CARP fits together](/start/how-carp-fits/).

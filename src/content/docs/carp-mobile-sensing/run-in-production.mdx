@@ -140,7 +140,7 @@ In a new Flutter project, the iOS `Podfile` is auto-generated in the `ios` folde
 
 An example of the edited `Podfile` would look like:
 
-```ruby
+```ruby title="ios/Podfile" ins={2,6,11-12,16-18,25}
 # Uncomment this line to define a global platform for your project
 platform :ios, '12.0'
 
@@ -169,18 +169,22 @@ post_install do |installer|
     end
   end
 end
-
 ```
 
 ### File management
 
 If you want to store data locally on the phone (using the `SQLiteDataManager` or `FileDataManager`), and want to grant the user of your app  (e.g. yourself during development and debugging) access to it on the phone or in a Mac Finder, add the following keys to `Info.plist`.
 
-```xml
-<key>UIFileSharingEnabled</key>
-<true/>
-<key>LSSupportsOpeningDocumentsInPlace</key>
-<true/>
+```xml title="ios/Runner/Info.plist" ins={4-7}
+<plist version="1.0">
+<dict>
+    ...
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+</dict>
+</plist>
 ```
 
 ### Wi-Fi
@@ -238,11 +242,16 @@ When you want to publish your app, which uses various CARP packages and plugins,
 
 Illegal permissions can be omitted by specifying that they should not be merged from a lower level manifest. This is done by adding the following lines to the `AndroidManifest.xml` file of your app, which prevents the restricted permissions from being added:
 
-```xml
-<uses-permission android:name="android.permission.READ_CALL_LOG" tools:node="remove"/>
-<uses-permission android:name="android.permission.READ_SMS" tools:node="remove"/>
-<uses-permission android:name="android.permission.SEND_SMS" tools:node="remove"/>
-<uses-permission android:name="android.permission.RECEIVE_SMS" tools:node="remove"/>
+```xml title="android/app/src/main/AndroidManifest.xml" ins={3-6}
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.READ_CALL_LOG" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_SMS" tools:node="remove"/>
+    <uses-permission android:name="android.permission.SEND_SMS" tools:node="remove"/>
+    <uses-permission android:name="android.permission.RECEIVE_SMS" tools:node="remove"/>
+
+    <application ...>
+</manifest>
 ```
 
 See also [issue #183](https://github.com/cph-cachet/carp.sensing-flutter/issues/183). Thanks to [koenniem](https://github.com/koenniem) for this update.

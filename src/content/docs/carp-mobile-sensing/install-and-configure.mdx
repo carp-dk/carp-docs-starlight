@@ -95,22 +95,27 @@ Add permissions for:
 - foreground/background execution
 - foreground service types used by [`flutter_background`](https://pub.dev/packages/flutter_background)
 
-```xml
-<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+```xml title="android/app/src/main/AndroidManifest.xml" ins={3-17}
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-<uses-permission android:name="android.permission.VIBRATE" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
-        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
 
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.WAKE_LOCK" />
-<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+            android:maxSdkVersion="32" />
 
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application ...>
+</manifest>
 ```
 
 <Aside>
@@ -123,41 +128,51 @@ Inside `<application>`, declare both plugin services:
 
 #### [`flutter_background`](https://pub.dev/packages/flutter_background)
 
-```xml
-<service
-    android:name="de.julianassmann.flutter_background.IsolateHolderService"
-    android:exported="false"
-    android:foregroundServiceType="dataSync|specialUse">
-    <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-        android:value="Collection of data while app is in background."/>
-</service>
+```xml title="android/app/src/main/AndroidManifest.xml" ins={4-10}
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application ...>
+        ...
+        <service
+            android:name="de.julianassmann.flutter_background.IsolateHolderService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync|specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Collection of data while app is in background."/>
+        </service>
+    </application>
+</manifest>
 ```
 
 #### [`flutter_local_notifications`](https://pub.dev/packages/flutter_local_notifications)
 
-```xml
-<service
-    android:name="com.dexterous.flutterlocalnotifications.ForegroundService"
-    android:exported="false"
-    android:stopWithTask="false"/>
+```xml title="android/app/src/main/AndroidManifest.xml" ins={4-18}
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application ...>
+        ...
+        <service
+            android:name="com.dexterous.flutterlocalnotifications.ForegroundService"
+            android:exported="false"
+            android:stopWithTask="false"/>
 
-<receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
 
-<receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED"/>
-        <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-        <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-        <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
-    </intent-filter>
-</receiver>
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
 ```
 
 ### Android Gradle setup
 
 In `android/app/build.gradle.kts`, enable desugaring and add dependency (required by local notifications):
 
-```kotlin
+```kotlin title="android/app/build.gradle.kts" ins={3,10}
 android {
   compileOptions {
     isCoreLibraryDesugaringEnabled = true
@@ -203,18 +218,28 @@ CAMS requires **iOS 15.0** or newer. Set the minimum deployment target to 15.0 i
 
 Add motion permission for step tracking:
 
-```xml
-<key>NSMotionUsageDescription</key>
-<string>This application tracks your steps</string>
+```xml title="ios/Runner/Info.plist" ins={4-5}
+<plist version="1.0">
+<dict>
+    ...
+    <key>NSMotionUsageDescription</key>
+    <string>This application tracks your steps</string>
+</dict>
+</plist>
 ```
 
 Optional (used in example to expose files in Finder):
 
-```xml
-<key>UIFileSharingEnabled</key>
-<true/>
-<key>LSSupportsOpeningDocumentsInPlace</key>
-<true/>
+```xml title="ios/Runner/Info.plist" ins={4-7}
+<plist version="1.0">
+<dict>
+    ...
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+</dict>
+</plist>
 ```
 
 ### AppDelegate notification setup

@@ -1,0 +1,137 @@
+---
+title: "Step 2: Build the app"
+description: Create a Flutter app and add CARP to it.
+sidebar:
+  label: 2 · Build the app
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+**What you'll do:** create an empty Flutter app, add the CARP packages, and do the
+small Android and iPhone setup CARP needs.
+
+**You need:**
+
+- **Flutter** installed: [Install Flutter](https://docs.flutter.dev/get-started/install).
+  When `flutter doctor` shows green checkmarks for Android or iOS, you're ready.
+- A phone set up for development:
+  [Android: turn on USB debugging](https://developer.android.com/studio/debug/dev-options),
+  or [iPhone: set up Xcode](https://docs.flutter.dev/get-started/install/macos/mobile-ios)
+  (iPhone apps can only be built on a Mac).
+
+<Aside type="tip">
+Use a **real phone** if you can. Simulators have no step counter or real battery,
+so they produce very little data.
+</Aside>
+
+## Steps
+
+<Steps>
+
+1. **Create an empty Flutter app.** In a terminal:
+
+   ```bash
+   flutter create my_first_carp_app
+   cd my_first_carp_app
+   ```
+
+2. **Add the CARP packages.**
+
+   ```bash
+   flutter pub add carp_core carp_mobile_sensing
+   ```
+
+3. **Do the platform setup.**
+
+   <Tabs>
+   <TabItem label="Android">
+
+   In `android/app/src/main/AndroidManifest.xml`, add this just above `<application`,
+   so the app may count steps:
+
+   ```xml title="android/app/src/main/AndroidManifest.xml" ins={3}
+   <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+       <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+
+       <application ...>
+   </manifest>
+   ```
+
+   In `android/app/build.gradle.kts`, add the two marked parts:
+
+   ```kotlin title="android/app/build.gradle.kts" ins={3,9-11}
+   android {
+       compileOptions {
+           isCoreLibraryDesugaringEnabled = true
+           // ...leave the existing lines as they are
+       }
+       // ...
+   }
+
+   dependencies {
+       coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+   }
+   ```
+
+   </TabItem>
+   <TabItem label="iPhone">
+
+   Open `ios/Runner.xcworkspace` in Xcode, select **Runner → General**, and set
+   **Minimum Deployments** to **15.0**. Then add this to `ios/Runner/Info.plist`
+   inside `<dict>`:
+
+   ```xml title="ios/Runner/Info.plist" ins={4-5}
+   <plist version="1.0">
+   <dict>
+       ...
+       <key>NSMotionUsageDescription</key>
+       <string>This app counts your steps for a research study.</string>
+   </dict>
+   </plist>
+   ```
+
+   </TabItem>
+   </Tabs>
+
+4. **Add your protocol.** Create `lib/protocol.dart` with the code from Step 1:
+
+   ```dart title="lib/protocol.dart"
+   import 'package:carp_core/carp_core.dart' hide Smartphone;
+   import 'package:carp_mobile_sensing/carp_mobile_sensing.dart';
+
+   SmartphoneStudyProtocol createProtocol() {
+     final protocol = SmartphoneStudyProtocol(
+       name: 'My first study',
+       dataEndPoint: SQLiteDataEndPoint(),
+     );
+     final phone = Smartphone();
+     protocol.addPrimaryDevice(phone);
+     protocol.addParticipantRole(ParticipantRole('Participant'));
+     protocol.addTaskControl(
+       ImmediateTrigger(),
+       BackgroundTask(name: 'Steps and battery', measures: [
+         Measure(type: SensorSamplingPackage.STEP_EVENT),
+         Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+       ]),
+       phone,
+     );
+     return protocol;
+   }
+   ```
+
+   `Smartphone` exists in both packages; `hide` tells Dart to use the one from
+   `carp_mobile_sensing`.
+
+</Steps>
+
+## Check it
+
+```bash
+flutter run
+```
+
+The default Flutter counter app starts on your phone. CARP isn't running yet; that's
+the next step.
+
+**Next:** [Step 3: Deploy](/carp-mobile-sensing/build-your-own-app/deploy/)

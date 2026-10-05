@@ -1,0 +1,50 @@
+---
+title: Where should the data go?
+description: Choose between keeping data on the phone, using CARP's server (CAWS), or your own server.
+---
+
+import { Aside, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+<Aside type="note">
+Using the [CARP Studies app](/start/run-your-study/)? You only choose between CAWS and local mode. See [Run it on your phone](/start/run-your-study/on-your-phone/) and [Go live](/start/run-your-study/go-live/).
+</Aside>
+
+Every study needs an answer to one question: **where do the measurements end up?**
+CARP gives you three choices. You can start with one and switch later.
+
+```mermaid
+flowchart LR
+    App["Your CARP app"] --> P["On the phone"]
+    App --> C["CAWS<br/>CARP's server"]
+    App --> O["Your own server"]
+```
+
+## Quick comparison
+
+| | On the phone | CAWS | Your own server |
+| --- | --- | --- | --- |
+| **Good for** | Trying CARP, pilots, apps that never share data | Real research studies with many participants | Organisations that already have a data platform |
+| **Server needed?** | No | Yes, CARP's (hosted for you, or your own copy) | Yes, yours |
+| **Invite participants & manage studies online** | No | Yes, in the CARP web portal, by email or with a study code | You build it |
+| **Setup effort** | None, it's the default | Medium: request portal access ([Discord](https://discord.gg/sswpqGvnf5) or [support@carp.dk](mailto:support@carp.dk)), then sign-in and a few lines of code | Depends on your server |
+| **Researcher gets the data by** | Copying files off each phone | Downloading from the portal | Your own tools |
+
+## How to choose
+
+- **Just exploring, or building a demo?** → [On the phone](/backends/where-data-goes/phone/).
+  It's what [the tutorial app](/carp-mobile-sensing/build-your-own-app/build/) already does.
+- **Running a real study with participants?** → [CAWS](/backends/where-data-goes/caws/). You get study management, participant
+  invitations and data download without building any server.
+- **Your organisation already stores data somewhere (a hospital system, a company
+  cloud)?** → [Your own server](/backends/where-data-goes/own-server/).
+
+<Aside type="tip">
+Not sure? Start **on the phone**. Your measures and your app's screens can be reused
+when you move on later. CAWS adds a sign-in step and moves the protocol to the server.
+</Aside>
+
+<CardGrid>
+  <LinkCard title="Keep data on the phone" href="/backends/where-data-goes/phone/" />
+  <LinkCard title="Use CAWS" href="/backends/where-data-goes/caws/" />
+  <LinkCard title="Use your own server" href="/backends/where-data-goes/own-server/" />
+</CardGrid>

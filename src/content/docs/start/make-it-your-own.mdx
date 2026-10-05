@@ -1,0 +1,31 @@
+---
+title: Make it your own
+description: What to change when the CARP Studies app is not enough, from a new data type to your own server or your own app.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Most studies only need the [CARP Studies app](/start/run-your-study/) and a protocol. When you need more, this is where each change happens. You can make one change without the others.
+
+| You want | What you change | Start here |
+| --- | --- | --- |
+| **A new kind of data** | Write a sampling package: a probe that collects it and a data type that describes it. | [Create your own package](/carp-mobile-sensing/sampling-packages/create-your-own/) |
+| **A new device** (a wearable or sensor) | Write a device manager in a sampling package, or use an existing wearable package. | [Device manager](/carp-mobile-sensing/sampling-packages/create-your-own/device-manager/), [Polar](/wearables/polar/), [Movesense](/wearables/movesense/) |
+| **Your own server** | Write a data manager that sends measurements to your server, and a data endpoint to choose it in the protocol. | [Use your own server](/backends/where-data-goes/own-server/) |
+| **Your own screens or flow** | Build your own Flutter app with CARP Mobile Sensing. | [Build your own app](/carp-mobile-sensing/build-your-own-app/design/) |
+
+<Aside type="note">
+A new data type or device only reaches the Studies app if its package is added to the app. The app is open source: [carp-dk/carp_study_app](https://github.com/carp-dk/carp_study_app). Fork it, or ask the CARP team on [Discord](https://discord.gg/sswpqGvnf5).
+</Aside>
+
+## The Studies app or your own app?
+
+| | CARP Studies app | Your own app |
+| --- | --- | --- |
+| **You write** | A study protocol (and texts: consent, translations, messages) | A Flutter app that uses CAMS |
+| **Screens** | Fixed: Home, Tasks, Statistics, Connections | Anything you design |
+| **Good for** | Most studies | Custom screens or a custom flow |
+| **App store** | Already on iOS and Android | You build, sign and publish it |
+| **Start with** | [Step 2: Run your study](/start/run-your-study/) | [Build your own app](/carp-mobile-sensing/build-your-own-app/design/) |
+
+Either way, the [protocol](/start/define-your-protocol/) is the same.

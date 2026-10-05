@@ -1,0 +1,97 @@
+---
+title: Run it on your phone
+description: Run your protocol in the CARP Studies app on your own phone, with no server and no account.
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Before anyone else sees your study, run it on your own phone. The app reads your files from its own folder, any sign-in works, and the data stays on the phone. No server and no account needed.
+
+You need [Flutter](https://docs.flutter.dev/get-started/install) and a phone connected to your computer (or a simulator).
+
+## Run it
+
+<Steps>
+
+1. **Get the app.**
+
+   ```bash
+   git clone https://github.com/carp-dk/carp_study_app
+   cd carp_study_app
+   ```
+
+2. **Add your study.** Put your files in `assets/carp/`:
+
+   | File | Folder | Needed? |
+   | --- | --- | --- |
+   | `protocol.json` from [Step 1](/start/define-your-protocol/) | `assets/carp/resources/` | Yes |
+   | `consent.json`, the informed consent | `assets/carp/resources/` | No. Without it, there is nothing to sign. |
+   | Translations, such as `en.json` and `da.json` | `assets/carp/lang/` | Only if your protocol or consent uses translation keys. `en.json` is the fallback. |
+   | Messages for the Home tab, one `.json` file each | `assets/carp/messages/` | No |
+
+   These folders are ignored by git, so your study files are never committed to the app.
+
+3. **Run the app.**
+
+   ```bash
+   flutter run
+   ```
+
+   A debug build runs in **local mode** by default.
+
+4. **Sign in with anything.** Either sign-in option works. The app then shows one invitation, your study. Accept it, sign the consent, and the study starts.
+
+5. **Change something and run again.** Local mode keeps nothing between runs, so after editing a file, stop the app and run `flutter run` again. You start fresh from sign-in.
+
+</Steps>
+
+<Aside type="tip">
+If your protocol sends data to a server (CAWS), local mode saves the data on the phone instead. You don't need a separate protocol for testing.
+</Aside>
+
+## Where is my data?
+
+On the phone, in a SQLite database called `carp-data.db`. Each row in its `measurements` table is one measurement, with its `data_type` and the measurement as JSON. Files such as audio, video and photos are saved next to it, in `carp/deployments/<deployment id>/data/` in the app's documents folder.
+
+<Tabs>
+<TabItem label="Android">
+
+Copy the database from a debug build to your computer:
+
+```bash
+adb exec-out run-as dk.cachet.carp_study_app cat databases/carp-data.db > carp-data.db
+```
+
+Files are under `app_flutter/carp/` in the same place:
+
+```bash
+adb exec-out run-as dk.cachet.carp_study_app ls -R app_flutter/carp
+```
+
+</TabItem>
+<TabItem label="iPhone">
+
+`carp-data.db` and the `carp` folder are in the app's Documents folder. It is visible in the **Files** app, under **On My iPhone → CARP Studies**. On a Mac, connect the phone and open it in **Finder → your iPhone → Files**.
+
+On the simulator, open the folder directly:
+
+```bash
+open "$(xcrun simctl get_app_container booted com.cachet.carpstudyapp data)/Documents"
+```
+
+</TabItem>
+</Tabs>
+
+Then see what was collected:
+
+```bash
+sqlite3 carp-data.db "select data_type, count(*) from measurements group by 1"
+```
+
+More about saving on the phone: [Keep data on the phone](/backends/where-data-goes/phone/).
+
+## Other modes
+
+`flutter run --dart-define="deployment-mode=dev"` runs the same app against CARP's dev server. The modes are `local`, `dev`, `test` and `production`. Release builds use `production`. See [Go live](/start/run-your-study/go-live/).
+
+**Next:** [Go live](/start/run-your-study/go-live/)

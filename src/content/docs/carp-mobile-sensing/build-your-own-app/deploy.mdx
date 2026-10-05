@@ -1,0 +1,51 @@
+---
+title: "Step 3: Deploy"
+description: Hand the protocol to the CARP engine on the phone.
+sidebar:
+  label: 3 · Deploy
+---
+
+import { Aside, Steps, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+**What you'll do:** start the CARP engine on the phone and *deploy* the protocol to it.
+A deployment is one participant's copy of the protocol, running on their phone.
+
+There are three ways to deploy. This guide uses the first:
+
+| | Protocol comes from | Good for |
+| --- | --- | --- |
+| **On the phone** (this guide) | Your app code | Trying things out, single-phone studies |
+| **Via CAWS** | The CARP Portal; the app downloads it after sign-in | Real studies with many participants |
+| **CARP Studies App** | The Portal; no app code at all | Studies that don't need a custom app |
+
+## Steps
+
+<Steps>
+
+1. **Start the engine.** `SmartPhoneClientManager` runs studies on the phone.
+
+   ```dart
+   final client = SmartPhoneClientManager();
+   await client.configure();
+   ```
+
+2. **Add the study and deploy it.**
+
+   ```dart
+   final study = await client.addStudyFromProtocol(createProtocol());
+   await client.tryDeployment(study.studyDeploymentId, study.deviceRoleName);
+   ```
+
+</Steps>
+
+You'll put this into the app, together with the next step, in [Step 4](/carp-mobile-sensing/build-your-own-app/collect/).
+
+## Other ways to deploy
+
+<CardGrid>
+  <LinkCard title="Deploy via CAWS" href="/backends/where-data-goes/caws/" description="Participants sign in; the app downloads their study from the server." />
+  <LinkCard title="Use the Studies App" href="/studies-app/" description="A ready-made app. Set up the study in the Portal, no code." />
+  <LinkCard title="Deployment in depth" href="/carp-mobile-sensing/runtime/client-and-study-controller/" description="The client manager, deployment states and app tasks." />
+</CardGrid>
+
+**Next:** [Step 4: Collect](/carp-mobile-sensing/build-your-own-app/collect/)

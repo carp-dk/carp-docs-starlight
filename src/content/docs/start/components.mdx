@@ -1,0 +1,66 @@
+---
+title: Components
+description: Every CARP piece, where its code lives, and what it depends on.
+---
+
+Where each piece lives and what it builds on. Packages are on
+[pub.dev/publishers/carp.dk](https://pub.dev/publishers/carp.dk/packages).
+
+## Core
+
+| Component | What it does | Repo | Depends on |
+| --- | --- | --- | --- |
+| `carp_serializable` | Polymorphic JSON serialization | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | – |
+| `carp_core` | Dart domain model: protocols, deployments, data | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | `carp_serializable` |
+| `carp.core-kotlin` | Kotlin domain model, used by the server | [carp.core-kotlin](https://github.com/carp-dk/carp.core-kotlin) | – |
+
+## Phone framework
+
+| Component | What it does | Repo | Depends on |
+| --- | --- | --- | --- |
+| [`carp_mobile_sensing`](/carp-mobile-sensing/) | Runs studies on the phone (CAMS) | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | `carp_core` |
+
+## Sampling packages
+
+All depend on `carp_mobile_sensing`.
+
+| Package | Collects | Also uses |
+| --- | --- | --- |
+| [`carp_health_package`](/sampling-packages/health/) | Apple Health / Health Connect | [`health`](/plugins/health/) |
+| `carp_survey_package` | Surveys and cognitive tests | `research_package`, `cognition_package` |
+| `carp_context_package` | Location, activity, weather, air quality | – |
+| `carp_audio_package` | Audio and noise | – |
+| `carp_connectivity_package` | Bluetooth, Wi-Fi, connectivity | – |
+| `carp_communication_package` | Phone calls and SMS | – |
+| `carp_apps_package` | Installed apps and app usage | – |
+
+## Wearables
+
+All depend on `carp_mobile_sensing`.
+
+| Package | Device | Repo |
+| --- | --- | --- |
+| [`carp_aware_package`](/wearables/apple-watch/) | Apple Watch | [carp_aware_package](https://github.com/carp-dk/carp_aware_package) |
+| `carp_polar_package` | Polar heart rate monitors | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) |
+| `carp_movesense_package` | Movesense sensors | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) |
+| `carp_movisens_package` | Movisens Move & ECG | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) |
+| `carp_esense_package` | eSense earables | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) |
+
+## Backends
+
+| Component | What it does | Repo | Depends on |
+| --- | --- | --- | --- |
+| CAWS server | Stores protocols, deployments and data (REST API) | [carp-webservices-spring](https://github.com/carp-dk/carp-webservices-spring) | `carp.core-kotlin` |
+| `carp_webservices` | Dart client for CAWS | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | `carp_mobile_sensing` |
+| `carp_backend` | Uploads phone data to CAWS | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | `carp_webservices` |
+| `carp_firebase_backend` | Uploads phone data to Firebase | [carp.sensing-flutter](https://github.com/carp-dk/carp.sensing-flutter) | `carp_mobile_sensing` |
+
+## Apps and tools
+
+| Component | What it does | Repo |
+| --- | --- | --- |
+| CARP Study App | Ready-made participant app | [carp_study_app](https://github.com/carp-dk/carp_study_app) |
+| CARP Portal | Web portal for researchers | [carp-portal](https://github.com/carp-dk/carp-portal) |
+| `carp-cli` | Terminal client and protocol editor | [carp-cli](https://github.com/carp-dk/carp-cli) |
+| `carp-client-ts` | TypeScript client for CAWS | [carp-client-ts](https://github.com/carp-dk/carp-client-ts) |
+| [Debug Toolkit](/plugins/debug-toolkit/) | In-app debugging for CARP apps | [carp_debug_flutter](https://github.com/carp-dk/carp_debug_flutter) |

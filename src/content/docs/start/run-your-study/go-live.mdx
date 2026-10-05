@@ -1,0 +1,45 @@
+---
+title: Go live
+description: Get a CARP Portal account, upload your study, invite participants, and move from a test server to production.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+When the study works on your phone, put it on a CARP server so participants can join. You use the **CARP Portal**, the website where researchers manage studies.
+
+<Aside type="tip" title="The protocol stays the same">
+The `protocol.json`, `consent.json` and translations you tested on your phone are the files you upload. Only the server and the sign-in change.
+</Aside>
+
+<Steps>
+
+1. **Get a Portal account.** Researcher accounts are by invitation. Ask the CARP team on [Discord](https://discord.gg/sswpqGvnf5) or at [support@carp.dk](mailto:support@carp.dk). DTU researchers can use the CARP server hosted by DTU Health Tech. You get an account on a test server first, and on production when you are ready.
+
+2. **Create the study and upload your files.** In the Portal:
+   - **Protocols:** upload `protocol.json`. A protocol for a server should send data there, not save it on the phone. Ask the CARP team which data endpoint to use.
+   - **Resources:** upload the informed consent and the translations.
+   - **Announcements:** write the messages participants see on the Home tab.
+
+3. **Invite participants.** In **Participants**, invite people by email, or let them join anonymously with a short study code or a QR code. Which one to choose: [Two ways to join](/backends/where-data-goes/caws/#two-ways-for-participants-to-join).
+
+4. **Test it yourself.** Invite yourself and join the study in the app. On a test server, run the app from source with the matching mode:
+
+   ```bash
+   flutter run --dart-define="deployment-mode=test"
+   ```
+
+   | Mode | Server |
+   | --- | --- |
+   | `dev` | dev.carp.dk |
+   | `test` | test.carp.dk |
+   | `production` | carp.computerome.dk. This is what the app in the App Store and Google Play uses. |
+
+5. **Go to production.** Set up the study the same way in the production Portal. Participants install **CARP Studies** from the [App Store](https://apps.apple.com/us/app/carp-studies/id1569798025) or [Google Play](https://play.google.com/store/apps/details?id=dk.cachet.carp_study_app) and join with their invitation or the study code.
+
+</Steps>
+
+## Get the data out
+
+The data is uploaded to the server while the study runs. Download it in the Portal under **Export**, or with [carp-cli](https://github.com/carp-dk/carp-cli). More: [Use CAWS](/backends/where-data-goes/caws/).
+
+**Next:** [What participants see](/start/run-your-study/what-participants-see/)

@@ -1,0 +1,73 @@
+---
+title: "Step 1: Design your study"
+description: Decide what to collect, from which device, and when, and write it as a study protocol.
+sidebar:
+  label: 1 · Design your study
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+**What you'll do:** write the *study protocol* from [Define your protocol](/start/define-your-protocol/) in Dart, the recipe your app will follow.
+It answers four questions:
+
+| Question | In the protocol | In this example |
+| --- | --- | --- |
+| **Where** is data collected? | Device | The phone |
+| **What** is collected? | Measures | Steps and battery |
+| **When** is it collected? | Trigger | Right away, all the time |
+| **Where** does data go? | Data endpoint | A database on the phone |
+
+## Steps
+
+<Steps>
+
+1. **Create the protocol and choose where data goes.**
+
+   ```dart
+   final protocol = SmartphoneStudyProtocol(
+     name: 'My first study',
+     dataEndPoint: SQLiteDataEndPoint(),
+   );
+   ```
+
+2. **Add the device and the participant.** The phone collects the data; the
+   participant is the person using it.
+
+   ```dart
+   final phone = Smartphone();
+   protocol.addPrimaryDevice(phone);
+   protocol.addParticipantRole(ParticipantRole('Participant'));
+   ```
+
+3. **Say what to collect, and when.** `ImmediateTrigger` means "start right away";
+   `BackgroundTask` means "keep collecting quietly".
+
+   ```dart
+   protocol.addTaskControl(
+     ImmediateTrigger(),
+     BackgroundTask(name: 'Steps and battery', measures: [
+       Measure(type: SensorSamplingPackage.STEP_EVENT),
+       Measure(type: DeviceSamplingPackage.BATTERY_STATE),
+     ]),
+     phone,
+   );
+   ```
+
+</Steps>
+
+You'll put this code into the app in the next step.
+
+<Aside type="tip">
+Want data every hour instead, or a survey every morning? That's a different
+[trigger](/carp-mobile-sensing/domain/triggers/) or
+[task](/carp-mobile-sensing/domain/tasks/). All options are in
+[Study Protocol](/carp-mobile-sensing/domain/study-protocol/).
+</Aside>
+
+## Check it
+
+You can answer the four questions above for your own study. If you'll use CAWS, the
+protocol is usually created in the CARP Portal instead of in code. That's covered in
+[Step 3](/carp-mobile-sensing/build-your-own-app/deploy/).
+
+**Next:** [Step 2: Build the app](/carp-mobile-sensing/build-your-own-app/build/)
