@@ -3,9 +3,12 @@ title: "Step 1: Configure your study"
 description: The files that make up a study, protocol.json, consent.json and translations, and how to generate them.
 sidebar:
   label: Step 1 · Configure your study
+next:
+  link: /start/run-your-study/
+  label: 'Step 2: Run your study'
 ---
 
-import { Aside, FileTree } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
 import Generate from '../../../components/Generate.astro';
 import protocolDart from '../../../examples/protocol.dart?raw';
 import protocolJson from '../../../examples/protocol.json?raw';
@@ -14,12 +17,11 @@ import consentJson from '../../../examples/consent.json?raw';
 
 A study is a few JSON files. The app reads them on your phone in [Step 2](/start/run-your-study/), and you upload the same files to the CARP Portal when you go live.
 
-<FileTree>
-- protocol.json what to collect, from which device, and when
-- consent.json the informed consent the participant reads and signs
-- en.json the texts, one file per language
-- da.json
-</FileTree>
+| File | What it holds | Needed? | Section |
+| --- | --- | --- | --- |
+| `protocol.json` | What to collect, from which device, and when | Yes | [Protocol](#protocol) |
+| `consent.json` | The informed consent the participant reads and signs | No | [Consent](#consent) |
+| `en.json`, `da.json`, … | The texts, one file per language | If you use keys | [Translations](#translations) |
 
 <Aside type="caution" title="Generate the JSON, don't write it">
 The JSON files are **generated** from Dart code, with [CARP Mobile Sensing](/carp-mobile-sensing/) for the protocol and [Research Package](https://pub.dev/packages/research_package) for the consent. Editing the JSON by hand is easy to get wrong: a missing `__type` or a misspelled measure only fails when the app runs. Change the Dart and generate the file again.
