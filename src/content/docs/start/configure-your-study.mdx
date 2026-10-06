@@ -8,7 +8,7 @@ next:
   label: 'Step 2: Run your study'
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 import Generate from '../../../components/Generate.astro';
 import protocolDart from '../../../examples/protocol.dart?raw';
 import protocolJson from '../../../examples/protocol.json?raw';
@@ -58,7 +58,9 @@ No `consent.json` means there is nothing to sign, and the participant goes strai
 
 The protocol and consent don't contain the texts. They contain **keys**, such as `study.purpose`. Each language has a file that maps the keys to the text, and the app shows the file that matches the phone's language. `en.json` is used when there is no file for that language.
 
-```json title="en.json"
+<Tabs>
+<TabItem label="en.json">
+```json title="assets/carp/lang/en.json" wrap
 {
   "study.title": "My first study",
   "study.description": "We count your steps for two weeks.",
@@ -74,16 +76,46 @@ The protocol and consent don't contain the texts. They contain **keys**, such as
   "consent.done.text": "Your consent is saved."
 }
 ```
-
-```json title="da.json"
+</TabItem>
+<TabItem label="da.json">
+```json title="assets/carp/lang/da.json" wrap
 {
   "study.title": "Mit første studie",
+  "study.description": "Vi tæller dine skridt i to uger.",
   "study.purpose": "At lære, hvor meget folk går i en almindelig uge.",
-  "...": "the same keys as en.json, in Danish"
+  "consent.title": "Informeret samtykke",
+  "consent.overview.summary": "Dette studie tæller dine skridt.",
+  "consent.overview.content": "I to uger tæller appen dine skridt i baggrunden.",
+  "consent.data.summary": "Vi indsamler skridt og batteriniveau.",
+  "consent.data.content": "Intet andet indsamles. Du kan til enhver tid trække dig.",
+  "consent.review.title": "Gennemgang",
+  "consent.review.reason": "Jeg har læst informationen og indvilliger i at deltage.",
+  "consent.done.title": "Tak",
+  "consent.done.text": "Dit samtykke er gemt."
 }
 ```
+</TabItem>
+<TabItem label="es.json">
+```json title="assets/carp/lang/es.json" wrap
+{
+  "study.title": "Mi primer estudio",
+  "study.description": "Contamos tus pasos durante dos semanas.",
+  "study.purpose": "Conocer cuánto camina la gente en una semana normal.",
+  "consent.title": "Consentimiento informado",
+  "consent.overview.summary": "Este estudio cuenta tus pasos.",
+  "consent.overview.content": "Durante dos semanas, la app cuenta tus pasos en segundo plano.",
+  "consent.data.summary": "Recogemos los pasos y el nivel de batería.",
+  "consent.data.content": "No se recoge nada más. Puedes abandonar el estudio en cualquier momento.",
+  "consent.review.title": "Revisión",
+  "consent.review.reason": "He leído la información y acepto participar.",
+  "consent.done.title": "Gracias",
+  "consent.done.text": "Tu consentimiento se ha guardado."
+}
+```
+</TabItem>
+</Tabs>
 
-Add as many languages as you need, one file each, with the same keys. Write `en.json` first, then let an AI tool translate it into the other languages, and have a native speaker check the result. Keep the keys unchanged, only the texts are translated.
+The three files have the same keys. Only the texts differ. Add as many languages as you need, one file each. Write `en.json` first, then let an AI tool translate it into the other languages, and have a native speaker check the result. Keep the keys unchanged, only the texts are translated.
 
 <Aside type="tip" title="The files stay the same">
 The same files run on your phone, on a test server and in production. Only the server and sign-in change.
