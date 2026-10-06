@@ -8,7 +8,7 @@ next:
   label: 'Step 2: Run your study'
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 import Generate from '../../../components/Generate.astro';
 import protocolDart from '../../../examples/protocol.dart?raw';
 import protocolJson from '../../../examples/protocol.json?raw';
@@ -16,6 +16,28 @@ import consentDart from '../../../examples/consent.dart?raw';
 import consentJson from '../../../examples/consent.json?raw';
 
 A study is a few JSON files. The app reads them on your phone in [Step 2](/start/run-your-study/), and you upload the same files to the CARP Portal when you go live.
+
+## How a study runs
+
+Every study follows the same flow on the participant's phone. The files on this page decide what happens at each step.
+
+<Steps>
+
+1. **Join.** The participant joins with an email invitation (username and password) or, if the study allows it, anonymously with a QR code or a 5-character code. The app shows the invitation with the study's purpose, from `protocol.json`.
+
+2. **Give consent.** The participant reads the informed consent and signs that you may collect their data, from `consent.json`.
+
+3. **Allow permissions.** The app asks for the permissions the protocol's measures need, such as location or activity.
+
+4. **Collect.** The app runs the protocol: each task starts when its trigger fires, its measures collect data, and the data goes to the protocol's data endpoint.
+
+5. **Leave.** The participant can leave the study at any time from their profile.
+
+</Steps>
+
+All texts along the way are shown in the phone's language, from the [translation](#translations) files. See the screens in [What participants see](/start/run-your-study/what-participants-see/).
+
+## The files
 
 | File | What it holds | Needed? | Section |
 | --- | --- | --- | --- |
