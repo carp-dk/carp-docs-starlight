@@ -1,0 +1,47 @@
+---
+// Dart code, and a button that reveals the JSON file it generates.
+import { Code } from '@astrojs/starlight/components';
+interface Props { dart: string; json: string; file: string }
+const { dart, json, file } = Astro.props;
+---
+<div class="generate">
+<Code code={dart.trim()} lang="dart" title="Dart" />
+<button type="button" class="generate-btn" aria-expanded="false">Generate {file}</button>
+<div class="generate-out" hidden>
+<p class="generate-note">Generated from the Dart code above. Don't edit this file by hand, change the Dart and generate it again.</p>
+<Code code={json.trim()} lang="json" title={file} />
+</div>
+</div>
+
+<script>
+document.querySelectorAll<HTMLButtonElement>('.generate-btn').forEach((btn) => {
+btn.addEventListener('click', () => {
+const out = btn.nextElementSibling as HTMLElement;
+out.hidden = !out.hidden;
+btn.setAttribute('aria-expanded', String(!out.hidden));
+btn.textContent = (out.hidden ? 'Generate ' : 'Hide ') + btn.textContent!.replace(/^(Generate|Hide) /, '');
+});
+});
+</script>
+
+<style>
+.generate-btn {
+margin-top: 0.75rem;
+padding: 0.45rem 1rem;
+border: 0;
+border-radius: 999px;
+background: var(--sl-color-accent);
+color: var(--sl-color-black);
+font-weight: 600;
+cursor: pointer;
+}
+.generate-btn::before { content: '▶ '; font-size: 0.8em; }
+.generate-btn[aria-expanded='true']::before { content: '▼ '; }
+.generate-note {
+margin-top: 0.75rem;
+padding: 0.5rem 0.75rem;
+border-left: 3px solid var(--sl-color-accent);
+background: var(--sl-color-accent-low);
+font-size: var(--sl-text-sm);
+}
+</style>

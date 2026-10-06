@@ -1,0 +1,84 @@
+{
+  "__type": "RPOrderedTask",
+  "identifier": "consent",
+  "closeAfterFinished": true,
+  "steps": [
+    {
+      "__type": "RPVisualConsentStep",
+      "identifier": "visual",
+      "title": "",
+      "optional": false,
+      "consentDocument": {
+        "__type": "RPConsentDocument",
+        "signatures": [
+          {
+            "__type": "RPConsentSignature",
+            "identifier": "signature",
+            "requiresName": true,
+            "requiresSignatureImage": true
+          }
+        ],
+        "title": "consent.title",
+        "sections": [
+          {
+            "__type": "RPConsentSection",
+            "type": "Overview",
+            "title": "title.overview",
+            "summary": "consent.overview.summary",
+            "content": "consent.overview.content"
+          },
+          {
+            "__type": "RPConsentSection",
+            "type": "DataGathering",
+            "title": "title.datagathering",
+            "summary": "consent.data.summary",
+            "content": "consent.data.content"
+          }
+        ]
+      },
+      "askPermission": false
+    },
+    {
+      "__type": "RPConsentReviewStep",
+      "identifier": "review",
+      "title": "consent.review.title",
+      "optional": false,
+      "consentDocument": {
+        "__type": "RPConsentDocument",
+        "signatures": [
+          {
+            "__type": "RPConsentSignature",
+            "identifier": "signature",
+            "requiresName": true,
+            "requiresSignatureImage": true
+          }
+        ],
+        "title": "consent.title",
+        "sections": [
+          {
+            "__type": "RPConsentSection",
+            "type": "Overview",
+            "title": "title.overview",
+            "summary": "consent.overview.summary",
+            "content": "consent.overview.content"
+          },
+          {
+            "__type": "RPConsentSection",
+            "type": "DataGathering",
+            "title": "title.datagathering",
+            "summary": "consent.data.summary",
+            "content": "consent.data.content"
+          }
+        ]
+      },
+      "reasonForConsent": "consent.review.reason"
+    },
+    {
+      "__type": "RPCompletionStep",
+      "identifier": "done",
+      "title": "consent.done.title",
+      "text": "consent.done.text",
+      "optional": false
+    }
+  ]
+}

@@ -60,6 +60,7 @@ export default defineConfig({
 		'/start/storage-phone': `${basePath}/backends/where-data-goes/phone/`,
 		'/start/storage-caws': `${basePath}/backends/where-data-goes/caws/`,
 		'/start/storage-own-server': `${basePath}/backends/where-data-goes/own-server/`,
+		'/start/define-your-protocol': `${basePath}/start/configure-your-study/`,
 		'/studies-app': `${basePath}/start/run-your-study/`,
 		'/studies-app/join-a-study': `${basePath}/start/run-your-study/what-participants-see/`,
 		'/studies-app/using-the-app': `${basePath}/start/run-your-study/what-participants-see/`,
@@ -158,7 +159,7 @@ markdown: { processor: satteri({ hastPlugins: [linksPlugin] }) },
 								'start',
 								'start/key-concepts',
 								'start/how-carp-fits',
-								'start/define-your-protocol',
+								'start/configure-your-study',
 								{
 									label: 'Step 2 · Run your study',
 									items: [

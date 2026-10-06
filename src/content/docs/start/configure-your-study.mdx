@@ -1,0 +1,90 @@
+---
+title: "Step 1: Configure your study"
+description: The files that make up a study, protocol.json, consent.json and translations, and how to generate them.
+sidebar:
+  label: Step 1 · Configure your study
+---
+
+import { Aside, FileTree } from '@astrojs/starlight/components';
+import Generate from '../../../components/Generate.astro';
+import protocolDart from '../../../examples/protocol.dart?raw';
+import protocolJson from '../../../examples/protocol.json?raw';
+import consentDart from '../../../examples/consent.dart?raw';
+import consentJson from '../../../examples/consent.json?raw';
+
+A study is a few JSON files. The app reads them on your phone in [Step 2](/start/run-your-study/), and you upload the same files to the CARP Portal when you go live.
+
+<FileTree>
+- protocol.json what to collect, from which device, and when
+- consent.json the informed consent the participant reads and signs
+- en.json the texts, one file per language
+- da.json
+</FileTree>
+
+<Aside type="caution" title="Generate the JSON, don't write it">
+The JSON files are **generated** from Dart code, with [CARP Mobile Sensing](/carp-mobile-sensing/) for the protocol and [Research Package](https://pub.dev/packages/research_package) for the consent. Editing the JSON by hand is easy to get wrong: a missing `__type` or a misspelled measure only fails when the app runs. Change the Dart and generate the file again.
+</Aside>
+
+To generate a file, run the Dart code in a test or a small script and save the result with `toJsonString(...)`. Try it with the buttons below.
+
+## Protocol
+
+The protocol answers four questions:
+
+| Question | In the protocol | In this example |
+| --- | --- | --- |
+| **Where** is data collected? | Device | The phone |
+| **What** is collected? | Measures | Steps and battery |
+| **When** is it collected? | Trigger | Right away, all the time |
+| **Where** does data go? | Data endpoint | A database on the phone |
+
+<Generate dart={protocolDart} json={protocolJson} file="protocol.json" />
+
+CAMS adds the `Monitoring Smartphone` task itself. It records errors and task events.
+
+To collect more, add a measure from [Available packages](/carp-mobile-sensing/sampling-packages/available-packages/). To collect at other times, change the [trigger](/carp-mobile-sensing/domain/triggers/). To ask the participant something, add a [task](/carp-mobile-sensing/domain/tasks/). Everything a protocol can hold is in [Study protocol](/carp-mobile-sensing/domain/study-protocol/).
+
+## Consent
+
+The consent is a short flow: the participant reads the sections, reviews them, signs with name and finger, and is done. Each section has a type (Overview, Data gathering, Privacy, Study tasks and more) that sets its icon and default title.
+
+<Generate dart={consentDart} json={consentJson} file="consent.json" />
+
+No `consent.json` means there is nothing to sign, and the participant goes straight into the study.
+
+## Translations
+
+The protocol and consent don't contain the texts. They contain **keys**, such as `study.purpose`. Each language has a file that maps the keys to the text, and the app shows the file that matches the phone's language. `en.json` is used when there is no file for that language.
+
+```json title="en.json"
+{
+  "study.title": "My first study",
+  "study.description": "We count your steps for two weeks.",
+  "study.purpose": "To learn how much people walk in a normal week.",
+  "consent.title": "Informed consent",
+  "consent.overview.summary": "This study counts your steps.",
+  "consent.overview.content": "For two weeks, the app counts your steps in the background.",
+  "consent.data.summary": "We collect steps and battery level.",
+  "consent.data.content": "Nothing else is collected. You can leave at any time.",
+  "consent.review.title": "Review",
+  "consent.review.reason": "I have read the information and agree to take part.",
+  "consent.done.title": "Thank you",
+  "consent.done.text": "Your consent is saved."
+}
+```
+
+```json title="da.json"
+{
+  "study.title": "Mit første studie",
+  "study.purpose": "At lære, hvor meget folk går i en almindelig uge.",
+  "...": "the same keys as en.json, in Danish"
+}
+```
+
+Add as many languages as you need, one file each, with the same keys. Write `en.json` first, then let an AI tool translate it into the other languages, and have a native speaker check the result. Keep the keys unchanged, only the texts are translated.
+
+<Aside type="tip" title="The files stay the same">
+The same files run on your phone, on a test server and in production. Only the server and sign-in change.
+</Aside>
+
+**Next:** [Step 2: Run your study](/start/run-your-study/)
