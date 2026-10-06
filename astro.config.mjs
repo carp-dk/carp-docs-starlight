@@ -47,8 +47,7 @@ if (value !== node.value) ctx.replaceNode(node, { type: 'raw', value });
 const basePath = (process.env.BASE_PATH ?? '/').replace(/\/$/, '');
 
 export default defineConfig({
-	// GitHub Pages serves under /carp-docs-starlight until docs.carp.dk points to it.
-	site: process.env.SITE_URL ?? 'https://docs.carp.dk',
+		site: process.env.SITE_URL ?? 'https://docs.carp.dk',
 	redirects: {
 		'/architecture': `${basePath}/start/how-carp-fits/`,
 		'/start/first-app': `${basePath}/carp-mobile-sensing/build-your-own-app/design/`,
