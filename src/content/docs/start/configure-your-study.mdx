@@ -23,9 +23,9 @@ Every study follows the same flow on the participant's phone. The files on this 
 
 <Steps>
 
-1. **Join.** The participant joins with an email invitation (username and password) or, if the study allows it, anonymously with a QR code or a 5-character code. The app shows the invitation with the study's purpose, from `protocol.json`.
+1. **Join.** The participant joins with an email invitation (username and password) or, if the study allows it, anonymously with a QR code or a 5-character code. The app shows the invitation with the study's purpose, from [`protocol.json`](#protocol).
 
-2. **Give consent.** The participant reads the informed consent and signs that you may collect their data, from `consent.json`.
+2. **Give consent.** The participant reads the informed consent and signs that you may collect their data, from [`consent.json`](#consent).
 
 3. **Allow permissions.** The app asks for the permissions the protocol's measures need, such as location or activity.
 
@@ -41,9 +41,9 @@ All texts along the way are shown in the phone's language, from the [translation
 
 | File | What it holds | Needed? | Section |
 | --- | --- | --- | --- |
-| `protocol.json` | What to collect, from which device, and when | Yes | [Protocol](#protocol) |
-| `consent.json` | The informed consent the participant reads and signs | No | [Consent](#consent) |
-| `en.json`, `da.json`, … | The texts, one file per language | If you use keys | [Translations](#translations) |
+| [`protocol.json`](#protocol) | What to collect, from which device, and when | Yes | [Protocol](#protocol) |
+| [`consent.json`](#consent) | The informed consent the participant reads and signs | No | [Consent](#consent) |
+| [`en.json`, `da.json`, …](#translations) | The texts, one file per language | If you use keys | [Translations](#translations) |
 
 <Aside type="caution" title="Generate the JSON, don't write it">
 The JSON files are **generated** from Dart code, with [CARP Mobile Sensing](/carp-mobile-sensing/) for the protocol and [Research Package](https://pub.dev/packages/research_package) for the consent. Editing the JSON by hand is easy to get wrong: a missing `__type` or a misspelled measure only fails when the app runs. Change the Dart and generate the file again.
